@@ -1,1 +1,1 @@
-web:    java $JAVA_OPTS -jar combo-server/target/mtg-deck-1.0-SNAPSHOT.jar
+web:    java $JAVA_OPTS -jar target/mtg-deck-1.0-SNAPSHOT.jar
