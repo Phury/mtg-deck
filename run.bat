@@ -1,0 +1,1 @@
+mvn package & java -jar target/mtg-deck-1.0-SNAPSHOT.jar
