@@ -1,22 +1,19 @@
 package be.phury.app.mtg.deck;
 
-import java.util.LinkedList;
 import java.util.List;
 
 /**
  * Created by Phury
  */
-public class Card {
+public class Card extends RestModel {
     private String name;
     private String type;
-    private String cmc;
+    private String manaCost;
+    private Integer convertedManaCost;
     private String oracle;
+    private String flavor;
     private String powerToughness;
-    private List<Link> links;
-
-    public Card() {
-        links = new LinkedList<>();
-    }
+    private List<String> editions;
 
     public String getName() {
         return name;
@@ -34,12 +31,20 @@ public class Card {
         this.type = type;
     }
 
-    public String getCmc() {
-        return cmc;
+    public String getManaCost() {
+        return manaCost;
     }
 
-    public void setCmc(String cmc) {
-        this.cmc = cmc;
+    public void setManaCost(String manaCost) {
+        this.manaCost = manaCost;
+    }
+
+    public Integer getConvertedManaCost() {
+        return convertedManaCost;
+    }
+
+    public void setConvertedManaCost(Integer convertedManaCost) {
+        this.convertedManaCost = convertedManaCost;
     }
 
     public String getOracle() {
@@ -50,6 +55,14 @@ public class Card {
         this.oracle = oracle;
     }
 
+    public String getFlavor() {
+        return flavor;
+    }
+
+    public void setFlavor(String flavor) {
+        this.flavor = flavor;
+    }
+
     public String getPowerToughness() {
         return powerToughness;
     }
@@ -58,15 +71,11 @@ public class Card {
         this.powerToughness = powerToughness;
     }
 
-    public List<Link> getLinks() {
-        return links;
+    public List<String> getEditions() {
+        return editions;
     }
 
-    public void setLinks(List<Link> links) {
-        this.links = links;
-    }
-
-    public void addLink(String rel, String href) {
-        links.add(Link.create(rel, href));
+    public void setEditions(List<String> editions) {
+        this.editions = editions;
     }
 }

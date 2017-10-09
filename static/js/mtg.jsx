@@ -1,7 +1,7 @@
 var Config = {
     host: "",
     cardEndpoint: "/api/cards/",
-    deckEndpoint: "/data/decks.json",
+    deckEndpoint: "/api/users/phury/decks/",
     logger: {
         level: "DEBUG"
     }
@@ -59,20 +59,25 @@ var CardComponent = React.createClass({
             );
         }
 
-        var imgSrc = this.state.card.links
-            .filter(e => e.rel === "image")
-            .map(e => e.href);
-
         return (
             <div className="row">
                 <div className="col s4">
-                    <img className="cardImage" src={imgSrc} />
+                    <img className="cardImage sideA" src={this.state.card.links.image} />
+                    {this.state.card.links.hasOwnProperty('other_side_image') &&
+                        <img className="cardImage sideB" src={this.state.card.links.other_side_image} />
+                    }
                 </div>
                 <div className="col s8">
-                    <h3>{this.state.card.name}</h3>
-                    {this.state.card.oracle.split("\n").map((txt,i) => {
-                        return <p key={i}>{txt}</p>;
-                    })}
+                    <h4>{this.state.card.name} <span className="manaCost">{this.state.card.manaCost}</span></h4>
+                    <p className="type">{this.state.card.type}</p>
+                    <div className="oracle">
+                        {this.state.card.oracle.split("\n").map((txt,i) => {
+                            return <p key={i}>{txt}</p>;
+                        })}
+                    </div>
+                    {this.state.card.links.hasOwnProperty('other_side') &&
+                        <p>Card has other side: {this.state.card.links.other_side}</p>
+                    }
                 </div>
             </div>
         );
@@ -98,16 +103,19 @@ var DeckComponent = React.createClass({
             var cardName = elt.substring(space+1, elt.length);
             return (
                 <li key={i}>
-                  <div className="collapsible-header">{numberOfCards +" "+ cardName}</div>
+                  <div className="collapsible-header">{numberOfCards +"x "+ cardName}</div>
                   <div className="collapsible-body"><CardComponent cardName={cardName}/></div>
                 </li>
             );
         });
 
         return (
-            <ul className="collapsible" data-collapsible="expandable">
-                {cardElements}
-            </ul>
+            <div className="deck">
+                <h1>{this.props.deck.name}</h1>
+                <ul className="collapsible" data-collapsible="expandable">
+                    {cardElements}
+                </ul>
+            </div>
         );
     }
 });

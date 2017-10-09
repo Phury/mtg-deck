@@ -29,6 +29,11 @@ public class Application {
         };
     }
 
+    @Bean
+    public IdGenerator idGenerator() {
+        return new IdGenerator();
+    }
+
     /**
      * Heroku uses environment property PORT to set the port of the application.
      * Check if that variable is set, otherwise default to spring's configuration
@@ -42,13 +47,4 @@ public class Application {
             });
         }
     }
-
-
-//    @Configuration
-//    public class StaticResourceConfiguration extends WebMvcConfigurerAdapter {
-//        @Override
-//        public void addResourceHandlers(ResourceHandlerRegistry registry) {
-//            registry.addResourceHandler("/**").addResourceLocations("file:/www/");
-//        }
-//    }
 }
