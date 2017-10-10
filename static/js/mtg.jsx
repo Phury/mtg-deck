@@ -194,28 +194,22 @@ const DeckComponent = React.createClass({
 
 const NavbarComponent = React.createClass({
     componentDidMount: function() {
-        $(".show-decks").sideNav({edge: "right"});
+        $(".button-collapse").sideNav();
     },
     render: function() {
-        var menuEntries = this.props.menuEntries.map(function(elt, i) {
-            return (
-                <li key={i}><Link to={"/deck/"+elt.id}>{elt.displayName}</Link></li>
-            );
-        });
-
         return (
             <div className="navigation">
-                <ul id="slide-out" className="side-nav">
-                    {menuEntries}
-                    <li><Link to="/deck-edit" className="btn">new</Link></li>
-                </ul>
                 <div className="navbar-fixed">
                     <nav>
                         <div className="nav-wrapper">
-                        <a href="/" className="brand-logo">{Config.appName}</a>
-                        <ul id="nav-mobile" className="right hide-on-med-and-down">
-                            <li><a href="#" data-activates="slide-out" className="show-decks">my decks</a></li>
-                        </ul>
+                            <Link to="/" className="brand-logo">{Config.appName}</Link>
+                            <a href="#" data-activates="mobile-navbar" className="button-collapse"><i className="material-icons">menu</i></a>
+                            <ul className="right hide-on-med-and-down">
+                                <li><Link to="/">my decks</Link></li>
+                            </ul>
+                            <ul className="side-nav" id="mobile-navbar">
+                                <li><Link to="/">my decks</Link></li>
+                            </ul>
                         </div>
                     </nav>
                 </div>
@@ -225,22 +219,8 @@ const NavbarComponent = React.createClass({
 });
 
 const HomeComponent = React.createClass({
-    render: function() {
-        return (
-            <div className="container">
-                <h1>Hello</h1>
-                <p>
-                Welcome to the {Config.appName} app.
-                Select a deck in your deck list or <Link to="/deck-edit" className="btn">create</Link> one
-                </p>
-            </div>
-        );
-    }
-});
-
-const MtgApp = React.createClass({
     getInitialState: function() {
-        return { decks: [] };
+        return { decks: null };
     },
     componentDidMount: function() {
         const uri = Config.host + Config.decksForUserEndpoint
@@ -253,9 +233,42 @@ const MtgApp = React.createClass({
             });
     },
     render: function() {
+        if (this.state.decks == null) {
+            return (
+                <div className="container">
+                    <h1>Hello</h1>
+                    <p>
+                    Welcome to the {Config.appName} app.
+                    Select a deck in your deck list or <Link to="/deck-edit" className="btn">create</Link> one
+                    </p>
+                </div>
+            );
+        }
+
+        var deckEntries = this.state.decks.map(function(elt, i) {
+            return (
+                <li key={i} className="collection-item"><Link to={"/deck/"+elt.id}>{elt.displayName}</Link></li>
+            );
+        });
+
+        return (
+            <div className="container">
+                <h1>My decks</h1>
+                 <ul className="collection">
+                    {deckEntries}
+                    <li className="collection-item"><Link to="/deck-edit" className="btn">new</Link></li>
+                 </ul>
+            </div>
+
+        );
+    }
+});
+
+const MtgApp = React.createClass({
+    render: function() {
         return (
             <main>
-                <NavbarComponent menuEntries={this.state.decks} />
+                <NavbarComponent />
                 <Switch>
                       <Route exact path="/" component={HomeComponent} />
                       <Route path="/deck-edit" component={DeckEditComponent} />
