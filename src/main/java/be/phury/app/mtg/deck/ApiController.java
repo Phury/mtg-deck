@@ -11,6 +11,7 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 @RestController
-@RequestMapping("/api")
+@RequestMapping(ApiController.API_ROOT)
 public @interface ApiController {
+    String API_ROOT = "/api";
 }

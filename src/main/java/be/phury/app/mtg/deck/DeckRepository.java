@@ -3,8 +3,10 @@ package be.phury.app.mtg.deck;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Created by Phury
@@ -14,27 +16,33 @@ public class DeckRepository {
     @Autowired
     private IdGenerator idGenerator;
 
-    private final Map<String, List<Deck>> database = new HashMap<>();
+    private final Map<String, Deck> database = new HashMap<>();
 
-    @PostConstruct
-    public void postConstruct() {
-        database.put("phury", Arrays.asList(new Deck(){{
-            setId(idGenerator.getNextId());
-            setName("Ifnir Cycle");
-            setCards(Arrays.asList("4 Flameblade Adept", "3 Firebrand Archer", "3 Archfiend of Ifnir", "4 Horror of the Broken Lands", "4 Desert Cerodon", "3 Faith of the Devoted", "3 Limits of Solidarity", "3 Cut+Ribbons", "4 Tormenting Voice", "4 Magma Spray", "3 Wander in Death", "4 Desert of the Glorified", "4 Desert of the Fervent", "2 Hostile Desert", "7 Swamp", "7 Mountain"));
-        }}));
+    public Deck getDeckById(String deckId) {
+        return database.get(deckId);
     }
 
-    public List<Deck> listDecksForUser(String userId) {
-        return database.get(userId);
+    public List<Deck> getDecksByUser(String userId) {
+        return database.values()
+                .stream()
+                .filter(d -> d.getSubmittedBy().equals(userId))
+                .collect(Collectors.toList());
     }
 
     public Deck createDeckForUser(String userId, Deck deck) {
-        List<Deck> values;
-        if (database.containsKey(userId)) values = database.get(userId);
-        else values = new LinkedList<>();
-        values.add(deck);
-        database.put(userId, values);
+        deck.setSubmittedBy(userId);
+        deck.setId(idGenerator.getNextId());
+        sanitizeMainboard(deck);
+        database.put(deck.getId(), deck);
         return deck;
     }
+
+    private void sanitizeMainboard(Deck deck) {
+        if (deck.getCards() == null) return;
+        deck.setCards(deck.getCards()
+                .stream()
+                .filter(str -> str != null && !str.trim().isEmpty())
+                .collect(Collectors.toList()));
+    }
+
 }

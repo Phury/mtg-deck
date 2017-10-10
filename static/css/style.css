@@ -5,3 +5,7 @@
 .cardImage.sideB {
     display: none;
 }
+
+.col.s12 > .btn {
+   width: 100%;
+}

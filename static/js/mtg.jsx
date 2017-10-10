@@ -1,63 +1,44 @@
-var Config = {
+const {
+  HashRouter,
+  Switch,
+  Route,
+  Link,
+  Redirect
+} = ReactRouterDOM
+
+const Config = {
     host: "",
+    appName: "ManaScrewed",
     cardEndpoint: "/api/cards/",
-    deckEndpoint: "/api/users/phury/decks/",
+    deckEndpoint: "/api/decks/",
+    decksForUserEndpoint: "/api/users/phury/decks/",
     logger: {
         level: "DEBUG"
     }
-};
+}
 
-function Logger(src) {
-    this.source = src;
-    this.level = Config.logger.level;
-    this.debug = function(str) {
-        if (this.level == "DEBUG") console.log(str);
-    };
-    this.error = function(error) {
-        console.error(error);
-    };
-};
-
-var _logger = new Logger();
-
-var CardComponent = React.createClass({
+const CardComponent = React.createClass({
     getInitialState: function() {
         return { card: null };
     },
 
     componentDidMount: function() {
-        const url = Config.host + Config.cardEndpoint + this.props.cardName;
-        
-        _logger.debug("loading " + url);
+        const uri = Config.host + Config.cardEndpoint + this.props.cardName;
 
-        var self = this;
-        fetch(url)
-            .then(function(response) {
-                if (!response.ok) {
-                    throw Error(response.message);
-                }
-                return response.json()
+        fetch(uri)
+            .then((response) => {
+                if (response.ok) return response.json();
+                else throw new Error("error calling uri "+ uri + " got response status " + response.status);
             })
-            .then(function(data) {
-                self.setState({ card: data });
-                _logger.debug(self.state);
-            }).catch(function(error) {
-                self.setState({ error: error });
-                _logger.error(error);
+            .then((data) => {
+                this.setState({ card: data });
+                console.log("CardComponent.componentDidMount.fetch.then from uri "+uri+" >>>");
+                console.log(this.state);
             });
-    },
-
-    componentWillUnmount: function() {
-        this.serverRequest.abort();
     },
 
     render: function() {
         if (this.state.card == null) return null;
-        if (this.state.error != null) {
-            return (
-                <p className="error">Component could not be loaded</p>
-            );
-        }
 
         return (
             <div className="row">
@@ -84,20 +65,111 @@ var CardComponent = React.createClass({
     }
 });
 
-var DeckComponent = React.createClass({
-    componentDidMount: function() {
-        this.jqueryHandle();
+var DeckEditComponent = React.createClass({
+    _parseData: function(txt) {
+        var jsonStr = "[\""+ (txt.split("\n").join("\",\"")) + "\"]";
+        console.log("DeckEditComponent._parseData >>>");
+        console.log(jsonStr);
+        return JSON.parse(jsonStr);
     },
-
-    componentWillUnmount: function() {
+    getInitialState: function() {
+        return { deckName: "", deckData: "", redirect: false };
     },
-
-    jqueryHandle: function() {
-        $('.collapsible').collapsible();
+    handleChange: function(e) {
+        const target = e.target;
+        this.setState({
+            [target.name]: target.value
+        });
     },
-
+    submitDeck: function(e) {
+        e.preventDefault();
+        const uri = Config.host + Config.decksForUserEndpoint;
+        const data = { "name": this.state.deckName, "cards": this._parseData(this.state.deckData)};
+        console.log("DeckEditComponent.submitDeck >>>");
+        console.log(data);
+        fetch(uri, {
+            method: "put",
+            body: JSON.stringify(data),
+            headers: {
+                "Accept": "application/json",
+                "Content-Type": "application/json"
+            }
+        })
+            .then((response) => {
+                if (response.ok) return response.json();
+                else throw new Error("error calling uri"+ uri + "got response status " + response.status);
+            })
+            .then((data) => {
+                console.log("DeckEditComponent.submitDeck.fetch.then from uri "+uri+" >>>");
+                console.log("got data from uri " + uri);
+                console.log(data);
+                this.setState({ redirect: data });
+            });
+    },
     render: function() {
-        var cardElements = this.props.deck.cards.map(function(elt, i) {
+        if (this.state.redirect) {
+            return <Redirect to={"/decks/" + this.state.redirect.id} />
+        }
+
+        return (
+            <div className="container">
+                <br />
+                <h1>Create your deck</h1>
+                <div className="row">
+                    <form onSubmit={this.submitDeck}>
+                        <div className="row">
+                            <div className="input-field col s12">
+                                <input
+                                    id="input-deck-name"
+                                    type="text"
+                                    name="deckName"
+                                    value={this.state.deckName}
+                                    onChange={this.handleChange} />
+                                <label htmlFor="input-deck-name">Name for your deck</label>
+                            </div>
+                        </div>
+                        <div className="row">
+                            <div className="input-field col s12">
+                                <textarea
+                                    id="input-deck-data"
+                                    name="deckData"
+                                    value={this.state.deckData}
+                                    onChange={this.handleChange}
+                                    className="materialize-textarea" />
+                                <label htmlFor="input-deck-data">Mainboard</label>
+                            </div>
+                        </div>
+                        <div className="row">
+                            <div className="input-field col s12">
+                                <input type="submit" className="btn waves-effect waves-light" value="Submit" />
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        );
+    }
+});
+
+const DeckComponent = React.createClass({
+    getInitialState: function() {
+        return { deck: null };
+    },
+    componentDidMount: function() {
+        const uri = Config.host + Config.deckEndpoint + this.props.match.params.deckId;
+        fetch(uri)
+            .then((response) => { return response.json() })
+            .then((data) => {
+                this.setState({ deck: data });
+                console.log("DeckComponent.componentDidMount.fetch.then from uri "+uri+" >>>")
+                console.log(this.state);
+                $(".collapsible").collapsible();
+            });
+    },
+    render: function() {
+        if (this.state.deck == null) return null;
+
+        var cardElements = this.state.deck.cards.map(function(elt, i) {
             var space = elt.indexOf(" ");
             var numberOfCards = elt.substring(0, space);
             var cardName = elt.substring(space+1, elt.length);
@@ -110,8 +182,8 @@ var DeckComponent = React.createClass({
         });
 
         return (
-            <div className="deck">
-                <h1>{this.props.deck.name}</h1>
+            <div className="container">
+                <h1>{this.state.deck.name}</h1>
                 <ul className="collapsible" data-collapsible="expandable">
                     {cardElements}
                 </ul>
@@ -120,56 +192,84 @@ var DeckComponent = React.createClass({
     }
 });
 
-var MtgApp = React.createClass({
-    
-    getInitialState: function() {
-        return { decks: [] };
-    },
-
+const NavbarComponent = React.createClass({
     componentDidMount: function() {
-        _logger.debug("loading " + Config.host + Config.deckEndpoint);
-        
-        var self = this;
-        fetch(Config.host + Config.deckEndpoint)
-            .then(function(response) {
-                return response.json()
-            })
-            .then(function(data) {
-                self.setState({ decks: data });
-                _logger.debug(self.state);
-            });
+        $(".show-decks").sideNav({edge: "right"});
     },
-
-    componentWillUnmount: function() {
-        this.serverRequest.abort();
-    },
-    
     render: function() {
-        if (this.state.decks.length <= 0) {
+        var menuEntries = this.props.menuEntries.map(function(elt, i) {
             return (
-                <div className="screen">
-                    <h1>Decks</h1>
-                    <p>Welcome to the mtg deck app. You do not seem to have made any deck yet. Start right <a href="#">here</a></p>
-                </div>
-            );
-        }
-
-        var deckElements = this.state.decks.map(function(elt, i) {
-            return (
-                <DeckComponent key={i} deck={elt} />
+                <li key={i}><Link to={"/deck/"+elt.id}>{elt.displayName}</Link></li>
             );
         });
 
         return (
-            <div className="screen">
-                {deckElements}
+            <div className="navigation">
+                <ul id="slide-out" className="side-nav">
+                    {menuEntries}
+                    <li><Link to="/deck-edit" className="btn">new</Link></li>
+                </ul>
+                <div className="navbar-fixed">
+                    <nav>
+                        <div className="nav-wrapper">
+                        <a href="/" className="brand-logo">{Config.appName}</a>
+                        <ul id="nav-mobile" className="right hide-on-med-and-down">
+                            <li><a href="#" data-activates="slide-out" className="show-decks">my decks</a></li>
+                        </ul>
+                        </div>
+                    </nav>
+                </div>
             </div>
+		);
+    }
+});
+
+const HomeComponent = React.createClass({
+    render: function() {
+        return (
+            <div className="container">
+                <h1>Hello</h1>
+                <p>
+                Welcome to the {Config.appName} app.
+                Select a deck in your deck list or <Link to="/deck-edit" className="btn">create</Link> one
+                </p>
+            </div>
+        );
+    }
+});
+
+const MtgApp = React.createClass({
+    getInitialState: function() {
+        return { decks: [] };
+    },
+    componentDidMount: function() {
+        const uri = Config.host + Config.decksForUserEndpoint
+        fetch(Config.host + Config.decksForUserEndpoint)
+            .then((response) => { return response.json() })
+            .then((data) => {
+                console.log("MtgApp.componentDidMount.fetch.then from uri "+uri+" >>>");
+                console.log(data);
+                this.setState({ decks: data });
+            });
+    },
+    render: function() {
+        return (
+            <main>
+                <NavbarComponent menuEntries={this.state.decks} />
+                <Switch>
+                      <Route exact path="/" component={HomeComponent} />
+                      <Route path="/deck-edit" component={DeckEditComponent} />
+                      <Route path="/deck/:deckId" component={DeckComponent} />
+                </Switch>
+            </main>
 		);
     }
 });
 
 
 ReactDOM.render(
-  <MtgApp />,
+    <HashRouter>
+        <MtgApp />
+    </HashRouter>,
   document.getElementById("app")
 );

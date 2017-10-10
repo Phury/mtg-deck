@@ -20,5 +20,4 @@ public abstract class RestModel {
     public void addLink(String rel, String href) {
         links.put(rel, href);
     }
-
 }

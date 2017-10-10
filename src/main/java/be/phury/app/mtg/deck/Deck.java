@@ -8,6 +8,7 @@ import java.util.List;
 public class Deck extends RestModel {
     private String id;
     private String name;
+    private String submittedBy;
     private List<String> cards;
     private List<String> sideboard;
     private List<String> maybeboard;
@@ -26,6 +27,14 @@ public class Deck extends RestModel {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getSubmittedBy() {
+        return submittedBy;
+    }
+
+    public void setSubmittedBy(String submittedBy) {
+        this.submittedBy = submittedBy;
     }
 
     public List<String> getCards() {
