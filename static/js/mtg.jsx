@@ -37,6 +37,10 @@ const CardComponent = React.createClass({
             });
     },
 
+    showModal: function(e) {
+        e.preventDefault();
+    },
+
     render: function() {
         if (this.state.card == null) return null;
 
@@ -103,18 +107,15 @@ var DeckEditComponent = React.createClass({
                 console.log("DeckEditComponent.submitDeck.fetch.then from uri "+uri+" >>>");
                 console.log("got data from uri " + uri);
                 console.log(data);
-                this.setState({ redirect: data });
+                this.setState(this.getInitialState());
+                this.props.history.push("/deck/"+data.id);
             });
     },
     render: function() {
-        if (this.state.redirect) {
-            return <Redirect to={"/decks/" + this.state.redirect.id} />
-        }
-
         return (
             <div className="container">
                 <br />
-                <h1>Create your deck</h1>
+                <h1>Create your deck <span className="right"><Link to="/" className="waves-effect waves-teal btn-flat">back</Link></span></h1>
                 <div className="row">
                     <form onSubmit={this.submitDeck}>
                         <div className="row">
@@ -165,7 +166,9 @@ const DeckComponent = React.createClass({
                 console.log(this.state);
                 $(".collapsible").collapsible();
             });
+
     },
+
     render: function() {
         if (this.state.deck == null) return null;
 
@@ -183,7 +186,7 @@ const DeckComponent = React.createClass({
 
         return (
             <div className="container">
-                <h1>{this.state.deck.name}</h1>
+                <h1>{this.state.deck.name} <span className="right"><Link to="/" className="waves-effect waves-teal btn-flat">back</Link></span></h1>
                 <ul className="collapsible" data-collapsible="expandable">
                     {cardElements}
                 </ul>
@@ -194,24 +197,30 @@ const DeckComponent = React.createClass({
 
 const NavbarComponent = React.createClass({
     componentDidMount: function() {
-        $(".button-collapse").sideNav();
     },
     render: function() {
         return (
-            <div className="navigation">
+            <div className="app-navigation">
                 <div className="navbar-fixed">
                     <nav>
                         <div className="nav-wrapper">
-                            <Link to="/" className="brand-logo">{Config.appName}</Link>
-                            <a href="#" data-activates="mobile-navbar" className="button-collapse"><i className="material-icons">menu</i></a>
-                            <ul className="right hide-on-med-and-down">
-                                <li><Link to="/">my decks</Link></li>
-                            </ul>
-                            <ul className="side-nav" id="mobile-navbar">
-                                <li><Link to="/">my decks</Link></li>
+                            <a href="#" className="brand-logo">{Config.appName}</a>
+                            <ul id="nav-mobile" className="right hide-on-med-and-down">
+                                <li><a href="sass.html">Sass</a></li>
+                                <li><a href="badges.html">Components</a></li>
+                                <li><a href="collapsible.html">JavaScript</a></li>
                             </ul>
                         </div>
                     </nav>
+                </div>
+                <div className="fixed-action-btn">
+                    <a className="btn-floating btn-large red">
+                        <i className="material-icons">menu</i>
+                    </a>
+                    <ul>
+                        <li><Link to="/" className="btn-floating blue"><i className="material-icons">home</i></Link></li>
+                        <li><Link to="/deck-edit" className="btn-floating green"><i className="material-icons">create</i></Link></li>
+                    </ul>
                 </div>
             </div>
 		);
@@ -233,7 +242,7 @@ const HomeComponent = React.createClass({
             });
     },
     render: function() {
-        if (this.state.decks == null) {
+        if (this.state.decks == null || this.state.decks.error != null || this.state.decks.length <= 0) {
             return (
                 <div className="container">
                     <h1>Hello</h1>
@@ -271,7 +280,7 @@ const MtgApp = React.createClass({
                 <NavbarComponent />
                 <Switch>
                       <Route exact path="/" component={HomeComponent} />
-                      <Route path="/deck-edit" component={DeckEditComponent} />
+                      <Route exact path="/deck-edit" component={DeckEditComponent} />
                       <Route path="/deck/:deckId" component={DeckComponent} />
                 </Switch>
             </main>

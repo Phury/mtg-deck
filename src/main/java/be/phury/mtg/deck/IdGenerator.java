@@ -1,4 +1,4 @@
-package be.phury.app.mtg.deck;
+package be.phury.mtg.deck;
 
 import java.util.UUID;
 

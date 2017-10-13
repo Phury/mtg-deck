@@ -1,11 +1,11 @@
-package be.phury.app.mtg.deck;
+package be.phury.mtg.deck;
 
 import java.util.List;
 
 /**
  * Created by Phury
  */
-public class Card extends RestModel {
+public class Card extends ApiModel {
     private String name;
     private String type;
     private String manaCost;

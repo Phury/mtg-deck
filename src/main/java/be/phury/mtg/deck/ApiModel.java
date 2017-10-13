@@ -1,4 +1,4 @@
-package be.phury.app.mtg.deck;
+package be.phury.mtg.deck;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -6,7 +6,7 @@ import java.util.Map;
 /**
  * Created by Phury
  */
-public abstract class RestModel {
+public abstract class ApiModel {
     private Map<String, String> links = new HashMap<>();
 
     public Map<String, String> getLinks() {

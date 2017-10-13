@@ -1,9 +1,11 @@
-package be.phury.app.mtg.deck;
+package be.phury.mtg.deck;
 
 /**
- * Created by Phury
+ * A short version of an entity to reduce size of response. This can be used for:
+ *  * returning a list of elements making it shorter to display
+ *  * returning a 201 created to link to the entity created
  */
-public class RestInfo {
+public class Entity {
     private String id;
     private String displayName;
     private String type;

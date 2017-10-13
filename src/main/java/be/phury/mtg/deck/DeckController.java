@@ -1,4 +1,4 @@
-package be.phury.app.mtg.deck;
+package be.phury.mtg.deck;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,13 +20,13 @@ import java.util.stream.Collectors;
 @ApiController
 public class DeckController {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(DeckController.class);
+    private static final Logger logger = LoggerFactory.getLogger(DeckController.class);
 
     @Autowired
     private DeckRepository deckRepository;
 
     @RequestMapping(path = "/users/{userId}/decks/")
-    public List<RestInfo> getDecksByUser(@PathVariable String userId) {
+    public List<Entity> getDecksByUser(@PathVariable String userId) {
         // TODO: handle error cases
         return deckRepository
                 .getDecksByUser(userId)
@@ -36,22 +36,22 @@ public class DeckController {
     }
 
     @RequestMapping(path = "/decks/{deckId}")
-    public Deck getDeckById(@PathVariable String deckId) {
-        final Deck d = deckRepository.getDeckById(deckId);
+    public DeckEditRequest getDeckById(@PathVariable String deckId) {
+        final DeckEditRequest d = deckRepository.getDeckById(deckId);
         // TODO: check null and return 404
         d.addLink("self", MessageFormat.format("{0}/decks/{1}", ApiController.API_ROOT, d.getId()));
         return d;
     }
 
     @RequestMapping(path = "/users/{userId}/decks/", method = RequestMethod.PUT)
-    public ResponseEntity<RestInfo> createDeckForUser(@PathVariable String userId, @RequestBody Deck deck) {
-        final Deck d = deckRepository.createDeckForUser(userId, deck);
+    public ResponseEntity<Entity> createDeckForUser(@PathVariable String userId, @RequestBody DeckEditRequest deck) {
+        final DeckEditRequest d = deckRepository.createDeckForUser(userId, deck);
         // TODO: check null and return 500
         return ResponseEntity.status(HttpStatus.CREATED).body(toInfo(d));
     }
 
-    private RestInfo toInfo(final Deck d) {
-        return new RestInfo() {{
+    private Entity toInfo(final DeckEditRequest d) {
+        return new Entity() {{
             setId(d.getId());
             setType("deck");
             setDisplayName(d.getName());

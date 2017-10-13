@@ -16,5 +16,10 @@ hs_err_pid*
 .idea/**
 
 # Maven
-*/log/
-*/target/
+log/
+
+target/
+
+
+src/main/resources/app-config.json
+target/test-classes/app-config.json

@@ -1,4 +1,4 @@
-package be.phury.app.mtg.deck;
+package be.phury.mtg.deck;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

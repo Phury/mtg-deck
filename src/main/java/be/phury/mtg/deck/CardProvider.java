@@ -1,4 +1,4 @@
-package be.phury.app.mtg.deck;
+package be.phury.mtg.deck;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -41,7 +41,7 @@ public class CardProvider {
         try {
             Document doc = Jsoup.connect("https://mtg.wtf/card?q=!" + urlEncode(query)).get();
             if (doc.select("div.results_summary").text().equals("No cards found")) {
-                throw new CardNotFoundException("Card {0} not found", query);
+                throw new ElementNotFoundException("Card {0} not found", query);
             }
             return doc;
         } catch (IOException e) {

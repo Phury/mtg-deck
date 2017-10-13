@@ -1,11 +1,14 @@
-package be.phury.app.mtg.deck;
+package be.phury.mtg.deck;
+
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 
 import java.util.List;
 
 /**
  * Created by Phury
  */
-public class Deck extends RestModel {
+public class DeckEditRequest extends ApiModel {
     private String id;
     private String name;
     private String submittedBy;
@@ -59,5 +62,15 @@ public class Deck extends RestModel {
 
     public void setMaybeboard(List<String> maybeboard) {
         this.maybeboard = maybeboard;
+    }
+
+    @Override
+    public String toString() {
+        return ToStringBuilder.reflectionToString(this);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return EqualsBuilder.reflectionEquals(this, obj);
     }
 }
