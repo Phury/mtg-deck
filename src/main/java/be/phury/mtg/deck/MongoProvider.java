@@ -35,10 +35,12 @@ public class MongoProvider {
     }
 
     public <T> T findByIdInCollection(String collectionName, String itemId, DocumentMapper<T> mapper) {
+        if (mongoDatabase == null) return null;
         return findAllByPropertyInCollection(collectionName, "_id", itemId, mapper).get(0);
     }
 
     public <T> List<T> findAllByPropertyInCollection(String collectionName, String property, String value, DocumentMapper<T> mapper) {
+        if (mongoDatabase == null) return new LinkedList<T>();
         final MongoCollection<Document> collection = mongoDatabase.getCollection(collectionName);
         final MongoCursor<Document> cursor = collection.find(new Document(property, value)).iterator();
 
@@ -50,6 +52,7 @@ public class MongoProvider {
     }
 
     public <T> T insertInCollection(String collectionName, T toInsert, DocumentMapper<T> mapper) {
+        if (mongoDatabase == null) return null;
         final MongoCollection<Document> collection = mongoDatabase.getCollection(collectionName);
         collection.insertOne(mapper.toDocument(toInsert));
         return toInsert; // TODO: handle mongodb internal _id vs generated uuid

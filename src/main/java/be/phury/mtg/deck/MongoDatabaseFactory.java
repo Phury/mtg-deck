@@ -17,6 +17,8 @@ import javax.annotation.PreDestroy;
 @Component
 public class MongoDatabaseFactory {
 
+    // TODO: allow for in memory Map based implementation if the MongoDatabase configuration is not set
+
     @Autowired
     private ApplicationConfiguration configuration;
 
@@ -24,6 +26,9 @@ public class MongoDatabaseFactory {
 
     @Bean
     public MongoDatabase mongoDatabase() {
+        if (configuration.getMongo() == null) {
+            return null;
+        }
         MongoClientURI uri = new MongoClientURI(getMongoUri());
         mongoClient = new MongoClient(uri);
         return mongoClient.getDatabase(configuration.getMongo().getDbName());
