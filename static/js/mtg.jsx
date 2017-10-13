@@ -17,23 +17,46 @@ const Config = {
     }
 }
 
+const DeckResource = {
+    listDecks: function() {
+        const uri = Config.host + Config.decksForUserEndpoint;
+        return fetch(uri)
+            .then((response) => {
+                if (response.ok) {
+                    console.log("response from " + uri);
+                    return response.json();
+                } else {
+                    throw new Error("error calling uri "+ uri + " got response status " + response.status);
+                }
+            });
+    }
+}
+
+
+const CardResource = {
+    getCardByName: function(cardName) {
+        const uri = Config.host + Config.cardEndpoint + cardName;
+        return fetch(uri)
+            .then((response) => {
+                if (response.ok) {
+                    console.log("response from " + uri);
+                    return response.json();
+                } else {
+                    throw new Error("error calling uri "+ uri + " got response status " + response.status);
+                }
+            });
+    }
+}
+
 const CardComponent = React.createClass({
     getInitialState: function() {
         return { card: null };
     },
 
     componentDidMount: function() {
-        const uri = Config.host + Config.cardEndpoint + this.props.cardName;
-
-        fetch(uri)
-            .then((response) => {
-                if (response.ok) return response.json();
-                else throw new Error("error calling uri "+ uri + " got response status " + response.status);
-            })
+        CardResource.getCardByName(this.props.cardName)
             .then((data) => {
                 this.setState({ card: data });
-                console.log("CardComponent.componentDidMount.fetch.then from uri "+uri+" >>>");
-                console.log(this.state);
             });
     },
 
@@ -72,8 +95,6 @@ const CardComponent = React.createClass({
 var DeckEditComponent = React.createClass({
     _parseData: function(txt) {
         var jsonStr = "[\""+ (txt.split("\n").join("\",\"")) + "\"]";
-        console.log("DeckEditComponent._parseData >>>");
-        console.log(jsonStr);
         return JSON.parse(jsonStr);
     },
     getInitialState: function() {
@@ -152,7 +173,7 @@ var DeckEditComponent = React.createClass({
     }
 });
 
-const DeckComponent = React.createClass({
+const DeckDetailComponent = React.createClass({
     getInitialState: function() {
         return { deck: null };
     },
@@ -162,8 +183,6 @@ const DeckComponent = React.createClass({
             .then((response) => { return response.json() })
             .then((data) => {
                 this.setState({ deck: data });
-                console.log("DeckComponent.componentDidMount.fetch.then from uri "+uri+" >>>")
-                console.log(this.state);
                 $(".collapsible").collapsible();
             });
 
@@ -172,7 +191,7 @@ const DeckComponent = React.createClass({
     render: function() {
         if (this.state.deck == null) return null;
 
-        var cardElements = this.state.deck.cards.map(function(elt, i) {
+        var cardElements = this.state.deck.cards.map((elt, i) => {
             var space = elt.indexOf(" ");
             var numberOfCards = elt.substring(0, space);
             var cardName = elt.substring(space+1, elt.length);
@@ -186,7 +205,7 @@ const DeckComponent = React.createClass({
 
         return (
             <div className="container">
-                <h1>{this.state.deck.name} <span className="right"><Link to="/" className="waves-effect waves-teal btn-flat">back</Link></span></h1>
+                <h1>{this.state.deck.name} <span className="right"><Link to="/deck" className="waves-effect waves-teal btn-flat">back</Link></span></h1>
                 <ul className="collapsible" data-collapsible="expandable">
                     {cardElements}
                 </ul>
@@ -196,19 +215,53 @@ const DeckComponent = React.createClass({
 });
 
 const NavbarComponent = React.createClass({
+    getInitialState: function() {
+        return { decks: null };
+    },
     componentDidMount: function() {
+        DeckResource.listDecks()
+            .then((data) => {
+                this.setState({ decks: data });
+                $(".button-collapse").sideNav();
+                $(".collapsible").collapsible();
+                $('.collapsible').collapsible('open', 0);
+            });
     },
     render: function() {
+
+        var deckEntries;
+        if (this.state.decks) {
+            deckEntries = this.state.decks.map((elt, i) => {
+                return (
+                    <li key={i}><Link to={"/deck/"+elt.id}>{elt.displayName}</Link></li>
+                );
+            });
+        }
+
         return (
             <div className="app-navigation">
-                <div className="navbar-fixed">
+                <div>
                     <nav>
                         <div className="nav-wrapper">
-                            <a href="#" className="brand-logo">{Config.appName}</a>
-                            <ul id="nav-mobile" className="right hide-on-med-and-down">
-                                <li><a href="sass.html">Sass</a></li>
-                                <li><a href="badges.html">Components</a></li>
-                                <li><a href="collapsible.html">JavaScript</a></li>
+                            <a href="#" className="brand-logo center">{Config.appName}</a>
+                            <a href="#" className="button-collapse show-on-large" data-activates="side-menu"><i className="material-icons">menu</i></a>
+                            <ul className="right hide-on-med-and-down">
+                                <li><Link to="/deck"><i className="material-icons left">view_list</i>My decks</Link></li>
+                                <li><Link to="/settings"><i className="material-icons">settings</i></Link></li>
+                            </ul>
+                            <ul id="side-menu" className="side-nav">
+                                <li className="no-padding">
+                                    <ul className="collapsible collapsible-accordion">
+                                        <li>
+                                            <a className="collapsible-header">My decks<i className="material-icons">arrow_drop_down</i></a>
+                                            <div className="collapsible-body">
+                                                <ul>
+                                                    {deckEntries}
+                                                </ul>
+                                            </div>
+                                        </li>
+                                    </ul>
+                                </li>
                             </ul>
                         </div>
                     </nav>
@@ -227,34 +280,23 @@ const NavbarComponent = React.createClass({
     }
 });
 
-const HomeComponent = React.createClass({
+const MyDecksComponent = React.createClass({
     getInitialState: function() {
         return { decks: null };
     },
     componentDidMount: function() {
-        const uri = Config.host + Config.decksForUserEndpoint
-        fetch(Config.host + Config.decksForUserEndpoint)
-            .then((response) => { return response.json() })
+        DeckResource.listDecks()
             .then((data) => {
-                console.log("MtgApp.componentDidMount.fetch.then from uri "+uri+" >>>");
-                console.log(data);
                 this.setState({ decks: data });
             });
     },
     render: function() {
         if (this.state.decks == null || this.state.decks.error != null || this.state.decks.length <= 0) {
-            return (
-                <div className="container">
-                    <h1>Hello</h1>
-                    <p>
-                    Welcome to the {Config.appName} app.
-                    Select a deck in your deck list or <Link to="/deck-edit" className="btn">create</Link> one
-                    </p>
-                </div>
-            );
+            return null;
         }
 
-        var deckEntries = this.state.decks.map(function(elt, i) {
+        // TODO: "Link to" does not work in the side menu when clicking on one deck then another
+        var deckEntries = this.state.decks.map((elt, i) => {
             return (
                 <li key={i} className="collection-item"><Link to={"/deck/"+elt.id}>{elt.displayName}</Link></li>
             );
@@ -265,15 +307,41 @@ const HomeComponent = React.createClass({
                 <h1>My decks</h1>
                  <ul className="collection">
                     {deckEntries}
-                    <li className="collection-item"><Link to="/deck-edit" className="btn">new</Link></li>
                  </ul>
+                 <Link to="/deck-edit" className="btn">Create new deck</Link>
             </div>
+        );
+    }
+});
 
+const SettingsComponent = React.createClass({
+    render: function() {
+        return (
+            <div className="container">
+                <h1>Settings</h1>
+            </div>
+        );
+    }
+});
+
+const HomeComponent = React.createClass({
+    render: function() {
+        return (
+            <div className="container">
+                <h1>Hello</h1>
+                <p>
+                Welcome to the {Config.appName} app.
+                Select a deck in your deck list or <Link to="/deck-edit" className="btn">create</Link> one.
+                </p>
+            </div>
         );
     }
 });
 
 const MtgApp = React.createClass({
+    componentDidMount: function() {
+        document.title = Config.appName;
+    },
     render: function() {
         return (
             <main>
@@ -281,7 +349,9 @@ const MtgApp = React.createClass({
                 <Switch>
                       <Route exact path="/" component={HomeComponent} />
                       <Route exact path="/deck-edit" component={DeckEditComponent} />
-                      <Route path="/deck/:deckId" component={DeckComponent} />
+                      <Route exact path="/deck" component={MyDecksComponent} />
+                      <Route path="/deck/:deckId" component={DeckDetailComponent} />
+                      <Route exact path="/settings" component={SettingsComponent} />
                 </Switch>
             </main>
 		);
