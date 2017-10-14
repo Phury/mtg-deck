@@ -21,35 +21,43 @@ public class ApplicationConfigurationFactory {
     private Resource jsonConfigFile;
 
     public ApplicationConfigurationFactory() {
-        jsonMapper = new JsonMapper<ApplicationConfiguration>(ApplicationConfiguration.class);
+        jsonMapper = new JsonMapper<>(ApplicationConfiguration.class);
         setJsonConfigFile(new ClassPathResource("app-config.json"));
     }
 
     @Bean
     public ApplicationConfiguration applicationConfiguration() {
-        try(InputStream is = getJsonConfigFile().getInputStream()) {
-            ByteArrayOutputStream os = new ByteArrayOutputStream();
-            IOUtils.copy(is, os);
-            ApplicationConfiguration configuration = jsonMapper.fromJson(new String(os.toByteArray(), "UTF-8"));
-            return overrideWithEnvProperties(configuration);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        ApplicationConfiguration configuration;
+        if (System.getenv("mtgdeck.version") != null) {
+            configuration = configureFromEnvironment();
+        } else {
+            configuration = configureFromJson();
         }
+        return configuration;
     }
 
-    private ApplicationConfiguration overrideWithEnvProperties(ApplicationConfiguration configuration) {
+    private ApplicationConfiguration configureFromJson() {
+        Resource configFile = getJsonConfigFile();
+        if (configFile.exists()) {
+            try(InputStream is = configFile.getInputStream()) {
+                ByteArrayOutputStream os = new ByteArrayOutputStream();
+                IOUtils.copy(is, os);
+                return jsonMapper.fromJson(new String(os.toByteArray(), "UTF-8"));
+            } catch (IOException e) {
+                throw new ConfigurationException(e);
+            }
+        }
+        throw new ConfigurationException("Configuration file and mongo url environment property not found");
+    }
+
+    private ApplicationConfiguration configureFromEnvironment() {
+        ApplicationConfiguration configuration = new ApplicationConfiguration();
         if (System.getenv("mtgdeck.version") != null)
             configuration.setVersion(System.getenv("mtgdeck.version"));
-        if (System.getenv("mtgdeck.mongo.dbuser") != null)
-            configuration.getMongo().setDbuser(System.getenv("mtgdeck.mongo.dbuser"));
-        if (System.getenv("mtgdeck.mongo.dbpassword") != null)
-            configuration.getMongo().setDbpassword(System.getenv("mtgdeck.mongo.dbpassword"));
-        if (System.getenv("mtgdeck.mongo.hostname") != null)
-            configuration.getMongo().setHostName(System.getenv("mtgdeck.mongo.hostname"));
-        if (System.getenv("mtgdeck.mongo.port") != null)
-            configuration.getMongo().setPort(Integer.parseInt(System.getenv("mtgdeck.mongo.port")));
+        if (System.getenv("mtgdeck.mongo.url") != null)
+            configuration.setMongoUrl(System.getenv("mtgdeck.mongo.url"));
         if (System.getenv("mtgdeck.mongo.dbname") != null)
-            configuration.getMongo().setDbName(System.getenv("mtgdeck.mongo.dbname"));
+            configuration.setMongoDatabaseName(System.getenv("mtgdeck.mongo.dbname"));
         return configuration;
     }
 
