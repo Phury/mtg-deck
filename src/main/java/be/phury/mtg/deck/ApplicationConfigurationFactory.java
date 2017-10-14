@@ -27,13 +27,8 @@ public class ApplicationConfigurationFactory {
 
     @Bean
     public ApplicationConfiguration applicationConfiguration() {
-        ApplicationConfiguration configuration;
-        if (System.getenv("mtgdeck.version") != null) {
-            configuration = configureFromEnvironment();
-        } else {
-            configuration = configureFromJson();
-        }
-        return configuration;
+        ApplicationConfiguration configuration = configureFromJson();
+        return overrideWithEnvironment(configuration);
     }
 
     private ApplicationConfiguration configureFromJson() {
@@ -47,11 +42,10 @@ public class ApplicationConfigurationFactory {
                 throw new ConfigurationException(e);
             }
         }
-        throw new ConfigurationException("Configuration file and mongo url environment property not found");
+        return new ApplicationConfiguration();
     }
 
-    private ApplicationConfiguration configureFromEnvironment() {
-        ApplicationConfiguration configuration = new ApplicationConfiguration();
+    private ApplicationConfiguration overrideWithEnvironment(ApplicationConfiguration configuration) {
         if (System.getenv("mtgdeck.version") != null)
             configuration.setVersion(System.getenv("mtgdeck.version"));
         if (System.getenv("mtgdeck.mongo.url") != null)

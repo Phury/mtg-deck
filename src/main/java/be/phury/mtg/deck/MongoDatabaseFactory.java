@@ -24,9 +24,7 @@ public class MongoDatabaseFactory {
 
     @Bean
     public MongoDatabase mongoDatabase() {
-        if (configuration.getMongoUrl() == null) {
-            return null;
-        }
+        if (configuration.getMongoUrl() == null) return null;
         MongoClientURI uri = new MongoClientURI(configuration.getMongoUrl());
         mongoClient = new MongoClient(uri);
         return mongoClient.getDatabase(configuration.getMongoDatabaseName());
