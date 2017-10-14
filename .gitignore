@@ -17,9 +17,4 @@ hs_err_pid*
 
 # Maven
 log/
-
 target/
-
-
-src/main/resources/app-config.json
-target/test-classes/app-config.json
