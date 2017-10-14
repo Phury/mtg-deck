@@ -39,7 +39,7 @@ public class CardProvider {
 
     private Document fetchDom(String query) {
         try {
-            Document doc = Jsoup.connect("https://mtg.wtf/card?q=!" + urlEncode(query)).get();
+            Document doc = Jsoup.connect("http://mtg.wtf/card?q=!" + urlEncode(query)).get();
             if (doc.select("div.results_summary").text().equals("No cards found")) {
                 throw new ElementNotFoundException("Card {0} not found", query);
             }
