@@ -1,5 +1,6 @@
-package be.phury.mtg.deck;
+package be.phury.mtg.deck.controller;
 
+import be.phury.mtg.deck.ApiController;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 /**

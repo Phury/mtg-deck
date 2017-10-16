@@ -7,16 +7,38 @@ Test the app : [https://manascrewd.herokuapp.com](https://manascrewd.herokuapp.c
 
 # Todo
 
-- Show mana symbols
+## Front
+
 - Handle dual sided cards
 - Slideshow when click on image
 - Custom theme
-- Filter returned fields with ?fields=a,b,c
-- Search (by name, by type, by manaCost, by color)
 - Add card to collection
 - Add card to deck
+- Implement search
+- PWA
+
+## Back
+
+- Filter returned fields in API with ?fields=a,b,c
+- Search (by name, by type, by manaCost, by color)
+- User API
+- Authentication
+- Card collections
+- Return exceptions as responses
+- Correct logging
 
 # Release notes
+
+## v0.04
+
+- major ui fixes
+- implement deck delete
+- use repositories in React
+- view card
+- view flip card
+- update navigation bar
+- handle titles updates with events
+- show mana symbols
 
 ## v0.03
 

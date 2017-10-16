@@ -1,5 +1,8 @@
-package be.phury.mtg.deck;
+package be.phury.mtg.deck.controller;
 
+import be.phury.mtg.deck.ApiController;
+import be.phury.mtg.deck.Card;
+import be.phury.mtg.deck.provider.CardProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

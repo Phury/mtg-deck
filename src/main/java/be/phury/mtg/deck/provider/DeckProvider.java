@@ -1,5 +1,7 @@
-package be.phury.mtg.deck;
+package be.phury.mtg.deck.provider;
 
+import be.phury.mtg.deck.DeckEditRequest;
+import be.phury.mtg.deck.IdGenerator;
 import be.phury.utils.DocumentMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -11,7 +13,7 @@ import java.util.stream.Collectors;
  * Created by Phury
  */
 @Service
-public class DeckRepository {
+public class DeckProvider {
 
     @Autowired
     private IdGenerator idGenerator;
@@ -37,6 +39,11 @@ public class DeckRepository {
         return mongoProvider.insertInCollection("decks", deck, mapper);
     }
 
+
+    public boolean deleteDeck(String deckId) {
+        return mongoProvider.deleteById("decks", deckId);
+    }
+
     private void sanitizeMainboard(DeckEditRequest deck) {
         if (deck.getCards() == null) return;
         deck.setCards(deck.getCards()
@@ -44,5 +51,4 @@ public class DeckRepository {
                 .filter(str -> str != null && !str.trim().isEmpty())
                 .collect(Collectors.toList()));
     }
-
 }

@@ -1,5 +1,7 @@
-package be.phury.mtg.deck;
+package be.phury.mtg.deck.provider;
 
+import be.phury.mtg.deck.Card;
+import be.phury.mtg.deck.ElementNotFoundException;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -101,18 +103,18 @@ public class CardProvider {
             card.setEditions(edition.select("li").eachText());
 
             if (doubleFaced != null) {
-                String flipSource = infolabel.select("a").first().absUrl("href");
-                String flipUrl = flipSource.substring(flipSource.lastIndexOf('/')+1, flipSource.length());
-                card.addLink("other_side_url", "/cards/" + flipUrl);
-                card.addLink("other_side_source", flipSource);
-                card.addLink("other_side_image", doubleFaced.absUrl("src"));
+                String flipName = infolabel.select("a").first().text();
+                //String flipUrl = flipSource.substring(flipSource.lastIndexOf('/')+1, flipSource.length());
+                card.addLink("flip_name", flipName);
+                card.addLink("flip_url", "/cards/" + flipName);
+                card.addLink("flip_image", doubleFaced.absUrl("src"));
             }
             if (aftermath != null) {
-                String flipSource = infolabel.select("a").first().absUrl("href");
-                String flipUrl = flipSource.substring(flipSource.lastIndexOf('/'), flipSource.length());
-                card.addLink("other_side_url", "/cards/" + urlEncode(flipUrl));
-                card.addLink("other_side_source", flipSource);
-                card.addLink("other_side_image", aftermath.absUrl("src"));
+                String aftermathName = infolabel.select("a").first().absUrl("href");
+                //String flipUrl = flipSource.substring(flipSource.lastIndexOf('/'), flipSource.length());
+                card.addLink("aftermath_name", aftermathName);
+                card.addLink("aftermath_url", "/cards/" + aftermathName);
+                card.addLink("aftermath_image", aftermath.absUrl("src"));
             }
             return card;
         }

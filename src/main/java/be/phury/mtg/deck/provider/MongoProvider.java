@@ -1,20 +1,15 @@
-package be.phury.mtg.deck;
+package be.phury.mtg.deck.provider;
 
-import be.phury.utils.MapBuilder;
 import be.phury.utils.DocumentMapper;
-import com.mongodb.MongoClient;
-import com.mongodb.MongoClientURI;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoDatabase;
-import org.apache.commons.text.StrSubstitutor;
 import org.bson.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PreDestroy;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -41,8 +36,10 @@ public class MongoProvider {
 
     public <T> List<T> findAllByPropertyInCollection(String collectionName, String property, String value, DocumentMapper<T> mapper) {
         if (mongoDatabase == null) return new LinkedList<T>();
-        final MongoCollection<Document> collection = mongoDatabase.getCollection(collectionName);
-        final MongoCursor<Document> cursor = collection.find(new Document(property, value)).iterator();
+        final MongoCursor<Document> cursor = mongoDatabase
+                .getCollection(collectionName)
+                .find(new Document(property, value))
+                .iterator();
 
         final List<T> result = new LinkedList<T>();
         while (cursor.hasNext()) {
@@ -53,8 +50,15 @@ public class MongoProvider {
 
     public <T> T insertInCollection(String collectionName, T toInsert, DocumentMapper<T> mapper) {
         if (mongoDatabase == null) return null;
-        final MongoCollection<Document> collection = mongoDatabase.getCollection(collectionName);
-        collection.insertOne(mapper.toDocument(toInsert));
+        mongoDatabase.getCollection(collectionName)
+                .insertOne(mapper.toDocument(toInsert));
         return toInsert; // TODO: handle mongodb internal _id vs generated uuid
+    }
+
+    public boolean deleteById(String collectionName, String itemId) {
+        if (mongoDatabase == null) return false;
+        return mongoDatabase.getCollection(collectionName)
+                .deleteOne(new Document("_id", itemId))
+                .getDeletedCount() == 1L;
     }
 }

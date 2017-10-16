@@ -1,8 +1,8 @@
-.cardImage {
-    max-width: 100%;
+.card-thumbnail {
+    width: 100%;
     border-radius: 5px;
 }
-.cardImage.sideB {
+.card-thumbnail.side-b {
     display: none;
 }
 
@@ -10,6 +10,21 @@
    width: 100%;
 }
 
+.action-bar {
+    position: relative;
+    height: 70px;
+}
+.action-bar > .fixed-action-btn {
+    position: absolute;
+    display: inline-block;
+    right: 24px;
+}
+.fixed-action-btn.toolbar.active {
+}
+
+.card-tile {
+    width: 150px;
+}
 /*
 .fixed-action-btn {
     top: 23px;
