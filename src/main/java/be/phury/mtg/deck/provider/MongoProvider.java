@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.text.MessageFormat;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -55,10 +56,26 @@ public class MongoProvider {
         return toInsert; // TODO: handle mongodb internal _id vs generated uuid
     }
 
+    public <T> T updateInCollection(String collectionName, String itemId, T toUpdate, DocumentMapper<T> mapper) {
+        if (mongoDatabase == null) return null;
+        if (mongoDatabase.getCollection(collectionName)
+                .replaceOne(identity(itemId), mapper.toDocument(toUpdate))
+                .getModifiedCount() == 1l)
+            return findByIdInCollection(collectionName, itemId, mapper);
+        throw new RuntimeException(
+                MessageFormat.format("Could not update element {0} with id {1}",
+                        toUpdate.getClass().getSimpleName(),
+                        itemId));
+    }
+
     public boolean deleteById(String collectionName, String itemId) {
         if (mongoDatabase == null) return false;
         return mongoDatabase.getCollection(collectionName)
-                .deleteOne(new Document("_id", itemId))
+                .deleteOne(identity(itemId))
                 .getDeletedCount() == 1L;
+    }
+
+    private Document identity(String id) {
+        return new Document("_id", id);
     }
 }

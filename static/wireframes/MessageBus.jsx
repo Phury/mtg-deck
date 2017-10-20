@@ -1,5 +1,5 @@
 
-const MessageBus = {
+const EventBus = {
     _map: {},
     notify: function(evt) {
         console.log(this._map);

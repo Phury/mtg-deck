@@ -39,6 +39,10 @@ public class DeckProvider {
         return mongoProvider.insertInCollection("decks", deck, mapper);
     }
 
+    public DeckEditRequest updateDeck(DeckEditRequest deck) {
+        sanitizeMainboard(deck);
+        return mongoProvider.updateInCollection("decks", deck.getId(), deck, mapper);
+    }
 
     public boolean deleteDeck(String deckId) {
         return mongoProvider.deleteById("decks", deckId);

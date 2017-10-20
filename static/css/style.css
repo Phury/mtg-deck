@@ -10,28 +10,26 @@
    width: 100%;
 }
 
-.action-bar {
-    position: relative;
-    height: 70px;
-}
-.action-bar > .fixed-action-btn {
-    position: absolute;
-    display: inline-block;
-    right: 24px;
-}
-.fixed-action-btn.toolbar.active {
-}
-
 .card-tile {
     width: 150px;
 }
-/*
-.fixed-action-btn {
-    top: 23px;
-}
-nav {
-    background-color: #388E3C;
-}
+
 nav .brand-logo {
+    font-size: 1.4rem;
 }
-*/
+
+.avatar div.circle {
+    background-size: 150%;
+    background-position: 15% 20%;
+    border-radius: 0;
+}
+
+
+#search-bar {
+    display: none;
+    /*
+    margin-bottom: 0px;
+    border-top: 1px solid #111;
+    border-bottom: 1px solid #111;
+    */
+}

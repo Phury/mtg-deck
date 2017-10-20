@@ -56,13 +56,18 @@ public class DeckController {
 
     @RequestMapping(path = "/decks/{deckId}", method = RequestMethod.DELETE)
     public ResponseEntity<Entity> deleteDeck(@PathVariable String deckId) {
-        final DeckEditRequest d = getDeckById(deckId);
-        final boolean deleted = deckProvider.deleteDeck(deckId);
-        if (deleted) {
-            return ResponseEntity.status(HttpStatus.ACCEPTED).body(toInfo(d));
+        final DeckEditRequest deletedDeck = getDeckById(deckId);
+        if (deckProvider.deleteDeck(deckId)) {
+            return ResponseEntity.status(HttpStatus.ACCEPTED).body(toInfo(deletedDeck));
         } else {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(toInfo(deckId, MessageFormat.format("could not delete deck with id {0}", deckId)));
         }
+    }
+
+    @RequestMapping(path = "/decks/{deckId}", method = RequestMethod.POST)
+    public ResponseEntity<Entity> updateDeck(@PathVariable String deckId, @RequestBody DeckEditRequest toUpdate) {
+        final DeckEditRequest updatedDeck = deckProvider.updateDeck(toUpdate);
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(toInfo(updatedDeck));
     }
 
     private Entity toInfo(final String id, final String message) {

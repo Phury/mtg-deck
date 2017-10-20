@@ -94,9 +94,20 @@ const DeckResource = {
                 if (response.ok) return response.json();
                 else throw new Error("error calling uri"+ uri + "got response status " + response.status);
             });
+    },
+    updateDeck: function(deck) {
+        const uri = Config.host + Config.userDeckEndpoint;
+        return fetch(uri, {
+            method: "post",
+            body: JSON.stringify(deck),
+            headers: JSON_HEADERS
+        })
+            .then((response) => {
+                if (response.ok) return response.json();
+                else throw new Error("error calling uri"+ uri + "got response status " + response.status);
+            });
     }
 }
-
 
 const CardResource = {
     getCardByName: function(cardName) {
@@ -113,14 +124,32 @@ const CardResource = {
     }
 }
 
+const FabComponent = React.createClass({
+    render: function() {
+        return (
+            <div className="fixed-action-btn">
+                <Link to={this.props.to} className="btn-floating btn-large waves-effect waves-light amber">
+                    <i className="material-icons">{this.props.icon}</i>
+                </Link>
+            </div>
+        );
+    }
+});
+
 var DeckEditComponent = React.createClass({
     getInitialState: function() {
-        return { deckName: "", deckData: "" };
+        return { deckName: "", deckCards: "" };
     },
     componentDidMount: function() {
         EventBus.send({name: "TITLE_CHANGE", title: "Create deck", to: "/"});
         //TODO: handle deck id from params to edit
-        //this.props.match.params.deckId
+        if (this.props.match.params.deckId) {
+            DeckResource.getDeckById(this.props.match.params.deckId)
+                .then((data) => {
+                    this.setState({ deckName: data.name, deckCards: data.cards.join("\n"), deckId: data.id });
+                    EventBus.send({name: "TITLE_CHANGE", title: "Delete deck", to: "/deck"});
+                });
+        }
     },
     _parseData: function(txt) {
         var jsonStr = "[\""+ (txt.split("\n").join("\",\"")) + "\"]";
@@ -134,21 +163,40 @@ var DeckEditComponent = React.createClass({
     },
     submitDeck: function(e) {
         e.preventDefault();
-        const deck = { "name": this.state.deckName, "cards": this._parseData(this.state.deckData), "submittedBy": "phury"};
+        const deck = {
+            name: this.state.deckName,
+            cards: this._parseData(this.state.deckCards),
+            submittedBy: "phury",
+            deckId: this.state.deckId
+        };
         console.log(deck);
-        DeckResource.createDeck(deck)
-            .then((data) => {
-                console.log("created deck and got response");
-                console.log(data);
-                this.setState(this.getInitialState());
-                this.props.history.push("/deck/"+data.id);
-            });
+        if (this.props.match.params.deckId) {
+            DeckResource.updateDeck(deck)
+                .then((data) => {
+                    console.log("created deck and got response");
+                    console.log(data);
+                    this.setState(this.getInitialState());
+                    this.props.history.push("/deck/"+data.id);
+                });
+        } else {
+            DeckResource.createDeck(deck)
+                .then((data) => {
+                    console.log("created deck and got response");
+                    console.log(data);
+                    this.setState(this.getInitialState());
+                    this.props.history.push("/deck/"+data.id);
+                });
+        }
+
     },
     render: function() {
         return (
             <div className="container">
                 <div className="row">
                     <form onSubmit={this.submitDeck} method="post">
+                        { this.state.deckId &&
+                            <input type="hidden" name="deckId" value={this.state.deckId} />
+                        }
                         <div className="row">
                             <div className="input-field col s12">
                                 <input
@@ -157,15 +205,29 @@ var DeckEditComponent = React.createClass({
                                     name="deckName"
                                     value={this.state.deckName}
                                     onChange={this.handleChange} />
-                                <label htmlFor="input-deck-name">Name for your deck</label>
+                                <label htmlFor="input-deck-name">Name your deck</label>
+                            </div>
+                        </div>
+                        <div className="row">
+                            <div className="input-field col s10">
+                                <input
+                                    id="input-deck-name"
+                                    type="text"
+                                    name="cardName"
+                                    value={this.state.cardName}
+                                    onChange={this.handleChange} />
+                                <label htmlFor="input-card-name">Card search</label>
+                            </div>
+                            <div className="input-field col s2">
+                                <button className="btn waves-effect waves-light">Add</button>
                             </div>
                         </div>
                         <div className="row">
                             <div className="input-field col s12">
                                 <textarea
                                     id="input-deck-data"
-                                    name="deckData"
-                                    value={this.state.deckData}
+                                    name="deckCards"
+                                    value={this.state.deckCards}
                                     onChange={this.handleChange}
                                     className="materialize-textarea" />
                                 <label htmlFor="input-deck-data">Mainboard</label>
@@ -173,7 +235,8 @@ var DeckEditComponent = React.createClass({
                         </div>
                         <div className="row">
                             <div className="input-field col s12">
-                                <input type="submit" className="btn waves-effect waves-light" value="Create deck" />
+                                <input type="submit" className="btn waves-effect waves-light"
+                                    value={this.state.deckId ? "Update deck" : "Create deck"} />
                             </div>
                         </div>
                     </form>
@@ -378,24 +441,16 @@ const DeckDetailComponent = React.createClass({
                     </li>
                 );
             });
+
+            // <a href="#" onClick={this.handleViewList} className="waves-effect waves-light"><i className="material-icons">view_list</i></a>
+            // <a href="#" onClick={this.handleViewModule} className="waves-effect waves-light"><i className="material-icons">view_module</i></a>
+
             return (
                 <div className="container">
                     <ul className="collapsible" data-collapsible="expandable">
                         {cardElements}
                     </ul>
-                    <div className="action-bar">
-                        <div className="fixed-action-btn toolbar">
-                            <a className="btn-floating btn-large red">
-                                <i className="material-icons">mode_edit</i>
-                            </a>
-                            <ul>
-                                <li><Link to={"/deck-edit/"+this.state.deck.id} className="waves-effect waves-light"><i className="material-icons">edit</i></Link></li>
-                                <li><Link to={"/deck-delete/"+this.state.deck.id} className="waves-effect waves-light"><i className="material-icons">delete</i></Link></li>
-                                <li><a href="#" onClick={this.handleViewList} className="waves-effect waves-light"><i className="material-icons">view_list</i></a></li>
-                                <li><a href="#" onClick={this.handleViewModule} className="waves-effect waves-light"><i className="material-icons">view_module</i></a></li>
-                            </ul>
-                        </div>
-                    </div>
+                    <FabComponent to={"/deck-edit/"+this.state.deck.id} icon="edit" />
                 </div>
             );
         }
@@ -426,7 +481,15 @@ const NavbarComponent = React.createClass({
         DeckResource.listDecks()
             .then((data) => {
                 this.setState({decks: data});
-                $("#mobile-menu-activate").sideNav();
+                var searchBar = $('div#search-bar'),
+                    searchInput = searchBar.find('input');
+                $('a#toggle-search').click(function() {
+                    searchBar.is(":visible") ? searchBar.slideUp() : searchBar.slideDown(function() {
+                        searchInput.focus();
+                    });
+                    return false;
+                });
+                searchInput.focusout(function() { searchBar.slideUp(); });
             });
     },
     titleChange: function(evt) {
@@ -446,28 +509,31 @@ const NavbarComponent = React.createClass({
 
         return (
             <div className="app-navigation">
-                <div>
-                    <nav>
-                        <div className="nav-wrapper">
-                            <ul className="left">
-                                {this.state.to &&
-                                    <li><Link to={this.state.to}><i className="material-icons left">arrow_back</i></Link></li>
-                                }
-                            </ul>
-                            <a href="#" className="brand-logo">{this.state.title}</a>
-                            <ul className="right hide-on-med-and-down">
-                                <li><Link to="/search"><i className="material-icons left">search</i>Search</Link></li>
-                                <li><Link to="/deck"><i className="material-icons left">view_list</i>Decks</Link></li>
-                                <li><Link to="/settings"><i className="material-icons left">settings</i>Settings</Link></li>
-                            </ul>
-                            <ul className="side-nav" id="mobile-menu">
-                                <li><Link to="/search"><i className="material-icons left">search</i>Search</Link></li>
-                                <li><Link to="/deck"><i className="material-icons left">view_list</i>Decks</Link></li>
-                                <li><Link to="/settings"><i className="material-icons left">settings</i>Settings</Link></li>
-                            </ul>
-                            <a href="#" data-activates="mobile-menu" id="mobile-menu-activate" className="button-collapse right"><i className="material-icons">menu</i></a>
-                        </div>
-                    </nav>
+                <ul id="contextual-dropdown" className="dropdown-content">
+                    <li><Link to="/deck"><i className="material-icons">view_list</i>My Decks</Link></li>
+                    <li><Link to="/settings"><i className="material-icons">settings</i>Settings</Link></li>
+                </ul>
+                <nav>
+                    <div className="nav-wrapper blue">
+                        <ul className="left">
+                            {this.state.to &&
+                                <li><Link to={this.state.to}><i className="material-icons left">arrow_back</i></Link></li>
+                            }
+                        </ul>
+                        <a href="#" className="brand-logo">{this.state.title}</a>
+                        <ul className="right">
+                            <li><a id="toggle-search" href="#!"><i className="material-icons">search</i></a></li>
+                            <li><a className="dropdown-button" href="#!" data-activates="contextual-dropdown"><i className="material-icons">more_vert</i></a></li>
+                        </ul>
+                    </div>
+                </nav>
+                <div id="search-bar" className="row white-text grey darken-3" >
+                    <div className="container">
+                        <form method="get" action="https://www.google.com/search">
+                            <input className="form-control" type="text" placeholder="Search ..." name="q"></input>
+                            <input type="hidden" value="makoframework.com" name="as_sitesearch"></input>
+                        </form>
+                    </div>
                 </div>
             </div>
 		);
@@ -493,7 +559,11 @@ const MyDecksComponent = React.createClass({
         // TODO: "Link to" does not work in the side menu when clicking on one deck then another
         var deckEntries = this.state.decks.map((elt, i) => {
             return (
-                <li key={i} className="collection-item"><Link to={"/deck/"+elt.id}>{elt.displayName}</Link></li>
+                <li key={i} className="collection-item avatar">
+                    <div style={{backgroundImage: "url('http://mtg.wtf/cards_hq/wwk/26.png')"}} alt="" className="circle" />
+                    <span className="title"><Link to={"/deck/"+elt.id}>{elt.displayName}</Link></span>
+                    <span className="secondary-content"><ManaCost mc={"{w}{u}{b}{r}{g}"} /></span>
+                </li>
             );
         });
 
@@ -502,16 +572,7 @@ const MyDecksComponent = React.createClass({
                 <ul className="collection">
                     {deckEntries}
                 </ul>
-                <div className="action-bar">
-                    <div className="fixed-action-btn toolbar">
-                        <a className="btn-floating btn-large red">
-                            <i className="material-icons">mode_edit</i>
-                        </a>
-                        <ul>
-                            <li><Link to="/deck-edit" className="waves-effect waves-light"><i className="material-icons">create</i></Link></li>
-                        </ul>
-                    </div>
-                </div>
+                <FabComponent to={"/deck-edit/"} icon="add" />
             </div>
         );
     }
@@ -605,6 +666,23 @@ const MtgApp = React.createClass({
 		);
     }
 });
+
+const Presenter = React.createClass({
+    getInitialState: function() {
+        return {
+            title: Config.appName,
+            backUrl: null,
+            currentDeck: null,
+            currentCard: null,
+            currentCardsInDeck: null,
+            currentUser: null
+        };
+    },
+    render: function() {
+        return null;
+    }
+});
+
 
 
 ReactDOM.render(
