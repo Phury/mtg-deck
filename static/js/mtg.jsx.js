@@ -23,28 +23,42 @@ const JSON_HEADERS = {
     "Content-Type": "application/json"
 }
 
+const ROUTES = {
+    index: "/",
+    listDecks: "/deck",
+    createDeck: "/deck-edit",
+    readDeck: "/deck-edit/",
+    updateDeck: "/deck-edit/",
+    deleteDeck: "/deck-delete/",
+    readCard: "/card/",
+    settings: "/card/",
+}
+
 const cloneObj = (obj) => {
     return JSON.parse(JSON.stringify(obj))
 }
 
-const Events = {
-    TitleChangeEvent: {name: "TITLE_CHANGE"}
-}
-
-const EventBus = {
+const eventBus = {
     _map: {},
     send: function(evt) {
         console.log(this._map);
-        for (var i = 0; i < this._map[evt.name].length; i++) {
-            this._map[evt.name][i](evt);
+        for (var i = 0; i < this._map[evt.eventType].length; i++) {
+            this._map[evt.eventType][i](evt);
         }
     },
-    register: function(evt, evtHandler) {
-        console.log("registering " + evtHandler + " to event " + evt.name)
-        if (!this._map[evt.name]) this._map[evt.name] = [];
-        this._map[evt.name].push(evtHandler);
+    register: function(eventType, evtHandler) {
+        console.log("registering " + evtHandler + " to event " + eventType)
+        if (!this._map[eventType]) this._map[eventType] = [];
+        this._map[eventType].push(evtHandler);
     }
 }
+
+const autocompleteData = {
+  "Cancel": "http://mtg.wtf/cards/xln/47.png",
+  "Crush of Tentacles": "http://mtg.wtf/cards_hq/ogw/53.png",
+  "Rogue Elephant": "http://mtg.wtf/cards_hq/wl/81.png",
+  "Westvale Abbey": "http://mtg.wtf/cards_hq/soi/281a.png"
+};
 
 const DeckResource = {
     getDeckById: function(deckId) {
@@ -141,13 +155,13 @@ var DeckEditComponent = React.createClass({
         return { deckName: "", deckCards: "" };
     },
     componentDidMount: function() {
-        EventBus.send({name: "TITLE_CHANGE", title: "Create deck", to: "/"});
+        eventBus.send({eventType: "TITLE_CHANGE", title: "Create deck", backUrl: "/"});
         //TODO: handle deck id from params to edit
         if (this.props.match.params.deckId) {
             DeckResource.getDeckById(this.props.match.params.deckId)
                 .then((data) => {
                     this.setState({ deckName: data.name, deckCards: data.cards.join("\n"), deckId: data.id });
-                    EventBus.send({name: "TITLE_CHANGE", title: "Delete deck", to: "/deck"});
+                    eventBus.send({eventType: "TITLE_CHANGE", title: "Delete deck", backUrl: "/deck"});
                 });
         }
     },
@@ -255,7 +269,7 @@ const DeckDeleteComponent = React.createClass({
         DeckResource.getDeckById(deckId)
             .then((data) => {
                 this.setState({ deck: data, deckId: deckId });
-                EventBus.send({name: "TITLE_CHANGE", title: "Delete deck", to: "/deck"});
+                eventBus.send({eventType: "TITLE_CHANGE", title: "Delete deck", backUrl: "/deck"});
             });
     },
     handleChange: function(e) {
@@ -402,7 +416,7 @@ const DeckDetailComponent = React.createClass({
             .then((data) => {
                 this.setState({ deck: data });
                 $(".collapsible").collapsible();
-                EventBus.send({name: "TITLE_CHANGE", title: this.state.deck.name, to: "/deck"});
+                eventBus.send({eventType: "TITLE_CHANGE", title: this.state.deck.name, backUrl: "/deck"});
             });
     },
     handleViewList: function(e) {
@@ -454,14 +468,12 @@ const DeckDetailComponent = React.createClass({
                 </div>
             );
         }
-
-
     }
 });
 
 const CardComponent = React.createClass({
     componentDidMount: function() {
-        EventBus.send({name: "TITLE_CHANGE", title: this.props.match.params.cardName, to: "/deck"});
+        eventBus.send({eventType: "TITLE_CHANGE", title: this.props.match.params.cardName, backUrl: "/deck"});
     },
     render: function() {
         return (
@@ -474,50 +486,44 @@ const CardComponent = React.createClass({
 
 const NavbarComponent = React.createClass({
     getInitialState: function() {
-        EventBus.register(Events.TitleChangeEvent, this.titleChange);
-        return {decks: null, title: Config.appName, to: null};
+        eventBus.register("TITLE_CHANGE", this.titleChange);
+        return {title: Config.appName, to: null};
     },
     componentDidMount: function() {
-        DeckResource.listDecks()
-            .then((data) => {
-                this.setState({decks: data});
-                var searchBar = $('div#search-bar'),
-                    searchInput = searchBar.find('input');
-                $('a#toggle-search').click(function() {
-                    searchBar.is(":visible") ? searchBar.slideUp() : searchBar.slideDown(function() {
-                        searchInput.focus();
-                    });
-                    return false;
-                });
-                searchInput.focusout(function() { searchBar.slideUp(); });
+        // handle toggle of the search bar
+        var searchBar = $('div#search-bar'),
+            searchInput = searchBar.find('input');
+        $('a#toggle-search').click(function() {
+            searchBar.is(":visible") ? searchBar.slideUp() : searchBar.slideDown(function() {
+                searchInput.focus();
             });
+            return false;
+        });
+        //searchInput.focusout(function() { searchBar.slideUp(); });
+
+        // handle auto-complete feature of the search bar
+        /*
+        $("#autocomplete-input").autocomplete({
+            data: autocompleteData,
+            limit: 20,
+            onAutocomplete: function(val) {
+            },
+            minLength: 3
+        });
+        */
     },
     titleChange: function(evt) {
-        console.log("title changed");
         console.log(evt);
-        this.setState({title: evt.title, to: evt.to});
+        this.setState({title: evt.title, backUrl: evt.backUrl});
     },
     render: function() {
-        var deckEntries;
-        if (this.state.decks) {
-            deckEntries = this.state.decks.map((elt, i) => {
-                return (
-                    <li key={i}><Link to={"/deck/"+elt.id}>{elt.displayName}</Link></li>
-                );
-            });
-        }
-
         return (
             <div className="app-navigation">
-                <ul id="contextual-dropdown" className="dropdown-content">
-                    <li><Link to="/deck"><i className="material-icons">view_list</i>My Decks</Link></li>
-                    <li><Link to="/settings"><i className="material-icons">settings</i>Settings</Link></li>
-                </ul>
                 <nav>
                     <div className="nav-wrapper blue">
                         <ul className="left">
-                            {this.state.to &&
-                                <li><Link to={this.state.to}><i className="material-icons left">arrow_back</i></Link></li>
+                            {this.state.backUrl &&
+                                <li><Link to={this.state.backUrl}><i className="material-icons left">arrow_back</i></Link></li>
                             }
                         </ul>
                         <a href="#" className="brand-logo">{this.state.title}</a>
@@ -527,12 +533,15 @@ const NavbarComponent = React.createClass({
                         </ul>
                     </div>
                 </nav>
+                <ul id="contextual-dropdown" className="dropdown-content">
+                    <li><Link to="/deck"><i className="material-icons">view_list</i>My Decks</Link></li>
+                    <li><Link to="/settings"><i className="material-icons">settings</i>Settings</Link></li>
+                </ul>
                 <div id="search-bar" className="row white-text grey darken-3" >
                     <div className="container">
-                        <form method="get" action="https://www.google.com/search">
-                            <input className="form-control" type="text" placeholder="Search ..." name="q"></input>
-                            <input type="hidden" value="makoframework.com" name="as_sitesearch"></input>
-                        </form>
+                        <div className="input-field col s12">
+                            <input type="text" id="autocomplete-input" className="autocomplete" placeholder="search ..." />
+                        </div>
                     </div>
                 </div>
             </div>
@@ -542,14 +551,14 @@ const NavbarComponent = React.createClass({
 
 const MyDecksComponent = React.createClass({
     getInitialState: function() {
-        return { decks: null };
+        return {decks: null}
     },
     componentDidMount: function() {
         DeckResource.listDecks()
-            .then((data) => {
-                this.setState({ decks: data });
-                EventBus.send({name: "TITLE_CHANGE", title: "My decks", to: "/"});
-            });
+        .then((data) => {
+            this.setState({decks: data});
+            eventBus.send({eventType: "TITLE_CHANGE", title: "My decks", backUrl: "/"});
+        });
     },
     render: function() {
         if (this.state.decks == null || this.state.decks.error != null || this.state.decks.length <= 0) {
@@ -561,12 +570,11 @@ const MyDecksComponent = React.createClass({
             return (
                 <li key={i} className="collection-item avatar">
                     <div style={{backgroundImage: "url('http://mtg.wtf/cards_hq/wwk/26.png')"}} alt="" className="circle" />
-                    <span className="title"><Link to={"/deck/"+elt.id}>{elt.displayName}</Link></span>
+                    <span className="title"><Link to={ROUTES.readDeck+elt.id}>{elt.displayName}</Link></span>
                     <span className="secondary-content"><ManaCost mc={"{w}{u}{b}{r}{g}"} /></span>
                 </li>
             );
         });
-
         return (
             <div className="container">
                 <ul className="collection">
@@ -578,47 +586,9 @@ const MyDecksComponent = React.createClass({
     }
 });
 
-const SearchComponent = React.createClass({
-    getInitialState: function() {
-        return { data: {
-             "Cancel": "http://mtg.wtf/cards/xln/47.png",
-             "Crush of Tentacles": "http://mtg.wtf/cards_hq/ogw/53.png",
-             "Rogue Elephant": "http://mtg.wtf/cards_hq/wl/81.png",
-             "Westvale Abbey": "http://mtg.wtf/cards_hq/soi/281a.png"
-        }};
-    },
-    componentDidMount: function() {
-        EventBus.send({name: "TITLE_CHANGE", title: "Search", to: "/"});
-        $("input.autocomplete").autocomplete({
-            data: this.state.data,
-            limit: 20,
-            onAutocomplete: function(val) {
-            },
-            minLength: 3
-        });
-    },
-    render: function() {
-        return (
-            <div className="container">
-                <div className="row">
-                    <div className="col s12">
-                        <div className="row">
-                            <div className="input-field col s12">
-                                <i className="material-icons prefix">search</i>
-                                <input type="text" id="autocomplete-input" className="autocomplete" />
-                                <label htmlFor="autocomplete-input">Search</label>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        );
-    }
-});
-
 const SettingsComponent = React.createClass({
     componentDidMount: function() {
-        EventBus.send({name: "TITLE_CHANGE", title: "Settings", to: "/"});
+        eventBus.send({eventType: "TITLE_CHANGE", title: "Settings", to: "/"});
     },
     render: function() {
         return (
@@ -629,14 +599,43 @@ const SettingsComponent = React.createClass({
     }
 });
 
+const Navigation = React.createClass({
+    render: function() {
+        return (
+            <nav>
+                <div className="nav-wrapper blue">
+                    <ul className="left">
+                        <li><a href="#">{this.props.title}</a></li>
+                        {this.props.contextMenu.map((menuItem, i) => {
+                            return <li key={i}><Link to={menuItem.link}>{menuItem.title}</Link></li>;
+                        })}
+                    </ul>
+                </div>
+            </nav>
+        );
+    }
+});
+
 const HomeComponent = React.createClass({
     render: function() {
         return (
             <div className="container">
+                <Navigation
+                    title="Home"
+                    contextMenu={[
+                        {
+                            title: "My decks",
+                            link: ROUTES.listDecks
+                        },
+                        {
+                            title: "Settings",
+                            link: ROUTES.settings
+                        }
+                    ]} />
                 <h1>Hello</h1>
                 <p>
                 Welcome to the {Config.appName} app.
-                Select a deck in your deck list or <Link to="/deck-edit" className="btn">create</Link> one.
+                Select a deck in your deck list or <Link to={ROUTES.createDeck} className="btn">create</Link> one.
                 </p>
             </div>
         );
@@ -652,38 +651,19 @@ const MtgApp = React.createClass({
             <main>
                 <NavbarComponent />
                 <Switch>
-                      <Route exact path="/" component={HomeComponent} />
-                      <Route exact path="/deck" component={MyDecksComponent} />
-                      <Route exact path="/deck-edit" component={DeckEditComponent} />
-                      <Route exact path="/deck-edit/:deckId" component={DeckEditComponent} />
-                      <Route exact path="/deck-delete/:deckId" component={DeckDeleteComponent} />
-                      <Route exact path="/deck/:deckId" component={DeckDetailComponent} />
-                      <Route exact path="/card/:cardName" component={CardComponent} />
-                      <Route exact path="/search" component={SearchComponent} />
-                      <Route exact path="/settings" component={SettingsComponent} />
+                      <Route exact path={ROUTES.index} component={HomeComponent} />
+                      <Route exact path={ROUTES.listDecks} component={MyDecksComponent} />
+                      <Route exact path={ROUTES.readDeck+":deckId"} component={DeckDetailComponent} />
+                      <Route exact path={ROUTES.createDeck} component={DeckEditComponent} />
+                      <Route exact path={ROUTES.editDeck+":deckId"} component={DeckEditComponent} />
+                      <Route exact path={ROUTES.deleteDeck+":deckId"} component={DeckDeleteComponent} />
+                      <Route exact path={ROUTES.readCard+":cardName"} component={CardComponent} />
+                      <Route exact path={ROUTES.settings} component={SettingsComponent} />
                 </Switch>
             </main>
 		);
     }
 });
-
-const Presenter = React.createClass({
-    getInitialState: function() {
-        return {
-            title: Config.appName,
-            backUrl: null,
-            currentDeck: null,
-            currentCard: null,
-            currentCardsInDeck: null,
-            currentUser: null
-        };
-    },
-    render: function() {
-        return null;
-    }
-});
-
-
 
 ReactDOM.render(
     <HashRouter>

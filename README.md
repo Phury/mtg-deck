@@ -7,27 +7,37 @@ Test the app : [https://manascrewd.herokuapp.com](https://manascrewd.herokuapp.c
 
 # Todo
 
-## Front
-
-- Handle dual sided cards
-- Slideshow when click on image
-- Custom theme
-- Add card to collection
-- Add card to deck
-- Implement search
-- PWA
-
-## Back
-
-- Filter returned fields in API with ?fields=a,b,c
-- Search (by name, by type, by manaCost, by color)
-- User API
-- Authentication
-- Card collections
-- Return exceptions as responses
-- Correct logging
+- [ ] Custom navigation actions
+- [ ] Delete deck link in deck fab
+- [ ] Show mana cost in card info
+- [ ] Show mana symbol in card oracle
+- [ ] Check cards at deck creation
+- [ ] Use card entity in deck model
+- [ ] Welcome page (idea)[https://magicthegathering.io/]
+- [ ] Wish list API
+- [ ] Swagger
+- [ ] Add card to collection
+- [ ] PWA
+- [ ] Implement search
+- [ ] Handle dual sided cards
+- [ ] Slideshow when click on image
+- [ ] Custom theme (Oketra, Hazoret, Rhonas, Kefnet, Bontu)
+- [ ] Add card to deck
+- [ ] Mozaic background for deck view
+- [ ] Filter returned fields in API with ?fields=a,b,c
+- [ ] Search API (by name, by type, by mana cost, by color)
+- [ ] User API
+- [ ] Authentication
+- [ ] Card collections API
+- [ ] Return exceptions as REST responses
+- [ ] Correct logging
+- [ ] Do not allow empty deck names
 
 # Release notes
+
+## v0.05
+- minor modification
+- ui cleanup (part1)
 
 ## v0.04
 
