@@ -1,3 +1,11 @@
+body {
+    background-color: #f7f7f7;
+}
+
+.collapsible-body {
+    background-color: #fff;
+}
+
 .card-thumbnail {
     width: 100%;
     border-radius: 5px;
@@ -27,9 +35,21 @@ nav .brand-logo {
 
 #search-bar {
     display: none;
-    /*
-    margin-bottom: 0px;
-    border-top: 1px solid #111;
-    border-bottom: 1px solid #111;
-    */
+}
+
+.collapsible-header {
+    position: relative;
+}
+
+.collapsible-header .mc {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+}
+
+
+.collapsible-header .mc i {
+    width: 1rem;
+    margin-right: 0;
+    font-size: 0.8rem;
 }

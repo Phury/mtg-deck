@@ -7,14 +7,14 @@ Test the app : [https://manascrewd.herokuapp.com](https://manascrewd.herokuapp.c
 
 # Todo
 
-- [ ] Custom navigation actions
+- [x] Custom navigation actions
 - [ ] Delete deck link in deck fab
-- [ ] Show mana cost in card info
+- [x] Show mana cost in card info
 - [ ] Show mana symbol in card oracle
 - [ ] Check cards at deck creation
 - [ ] Use card entity in deck model
-- [ ] Welcome page (idea)[https://magicthegathering.io/]
-- [ ] Wish list API
+- [ ] Welcome page [https://magicthegathering.io/](example)
+- [ ] Stash API
 - [ ] Swagger
 - [ ] Add card to collection
 - [ ] PWA
@@ -34,6 +34,10 @@ Test the app : [https://manascrewd.herokuapp.com](https://manascrewd.herokuapp.c
 - [ ] Do not allow empty deck names
 
 # Release notes
+
+## v0.06
+- ui cleanup (part2)
+- custom navigation actions
 
 ## v0.05
 - minor modification
