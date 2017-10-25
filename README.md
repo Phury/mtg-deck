@@ -1,19 +1,23 @@
-# Mtg Deck
+# Urza's Grimoire
 
-A modern take on the magic deckbuilder tools
+>"Books can be replaced; a prize student cannot. Be patient."
+>~Urza, to Barrin
+
+Urza's Grimoire is a simple deck building tool for Magic: The Gathering. It is a 'PWA' (progressive web application) built with 'react.js' and springboot.
+The database is 'mongo' but there will be more connectors in the future. The card information comes from 'mtg.wtf'.
 
 Test the app : [https://manascrewd.herokuapp.com](https://manascrewd.herokuapp.com)
 
 
 # Todo
-
 - [x] Custom navigation actions
 - [x] "Delete deck" link in deck fab
 - [x] Show mana cost in card info
 - [x] Show mana symbol in card oracle
-- [ ] Check cards at deck creation
-- [ ] Use card entity in deck model
-- [ ] Welcome page [https://magicthegathering.io/](example)
+- [ ] Validate cards at deck creation
+- [ ] Do not allow empty deck names at creation
+- [ ] Update deck model to reference cards and not strings
+- [ ] Create a welcome page (example: [https://magicthegathering.io/](magicthegathering.io))
 - [ ] Stash API
 - [ ] Swagger
 - [ ] Add card to collection
@@ -31,9 +35,14 @@ Test the app : [https://manascrewd.herokuapp.com](https://manascrewd.herokuapp.c
 - [ ] Card collections API
 - [ ] Return exceptions as REST responses
 - [ ] Correct logging
-- [ ] Do not allow empty deck names
+- [ ] i18n
 
 # Release notes
+
+## v0.07
+- ui cleanup (part3)
+- Show mana symbol in card oracle
+- "Delete deck" link in deck fab
 
 ## v0.06
 - ui cleanup (part2)
@@ -44,7 +53,6 @@ Test the app : [https://manascrewd.herokuapp.com](https://manascrewd.herokuapp.c
 - ui cleanup (part1)
 
 ## v0.04
-
 - major ui fixes
 - implement deck delete
 - use repositories in React
@@ -55,18 +63,15 @@ Test the app : [https://manascrewd.herokuapp.com](https://manascrewd.herokuapp.c
 - show mana symbols
 
 ## v0.03
-
 - mongo db backend
 - navigation fixes
 
 
 ## v0.02
-
 - deck creation
 - v0.02 api to CR decks
 
 ## v0.01
-
 - materialze css frontend
 - v0.01 api to retrieve cards
 - hardcoded deck

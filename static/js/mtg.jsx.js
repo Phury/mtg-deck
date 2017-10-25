@@ -494,7 +494,7 @@ const DeckDeleteComponent = React.createClass({
                                         name="deckName"
                                         value={this.state.deckName}
                                         onChange={this.handleChange} />
-                                    <label htmlFor="input-deck-name">Deck to delete</label>
+                                    <label htmlFor="input-deck-name">Name of the deck</label>
                                 </div>
                             </div>
                             <div className="row">
@@ -764,15 +764,6 @@ const MyDecksComponent = React.createClass({
         }
 
         // TODO: "Link to" does not work in the side menu when clicking on one deck then another
-        var deckEntries = this.state.decks.map((elt, i) => {
-            return (
-                <li key={i} className="collection-item avatar">
-                    <div style={{backgroundImage: "url('http://mtg.wtf/cards_hq/wwk/26.png')"}} alt="" className="circle" />
-                    <span className="title"><Link to={"/decks/"+elt.id}>{elt.displayName}</Link></span>
-                    <span className="secondary-content"><Manacost mc={"{w}{u}{b}{r}{g}"} /></span>
-                </li>
-            );
-        });
         return (
             <main>
                 <Navigation
@@ -790,7 +781,15 @@ const MyDecksComponent = React.createClass({
                     ]} />
                 <div className="container">
                     <ul className="collection">
-                        {deckEntries}
+                        {this.state.decks.map((elt, i) => {
+                            return (
+                                <li key={i} className="collection-item avatar">
+                                    <div style={{backgroundImage: "url('http://mtg.wtf/cards_hq/wwk/26.png')"}} alt="" className="circle" />
+                                    <span className="title"><Link to={"/decks/"+elt.id}>{elt.displayName}</Link></span>
+                                    <span className="secondary-content"><Manacost mc={"{w}{u}{b}{r}{g}"} /></span>
+                                </li>
+                            );
+                        })}
                     </ul>
                     <FabComponent
                         menuItems={[
