@@ -2,6 +2,17 @@ body {
     background-color: #f7f7f7;
 }
 
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    border: 0;
+}
+
 .collapsible-body {
     background-color: #fff;
 }
@@ -47,9 +58,27 @@ nav .brand-logo {
     right: 16px;
 }
 
-
 .collapsible-header .mc i {
     width: 1rem;
     margin-right: 0;
     font-size: 0.8rem;
+}
+
+.carousel {
+   height: 480px !important;
+}
+.carousel img {
+    height: 280px;
+}
+
+// mobile fab tooltip
+.mobile-fab-tip {
+	position: fixed;
+	right: 85px;
+	padding:0px 0.5rem;
+	text-align: right;
+	background-color: #323232;
+	border-radius: 2px;
+	color: #FFF;
+	width:auto;
 }

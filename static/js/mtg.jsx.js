@@ -9,7 +9,7 @@ const {
 
 const Config = {
     host: "",
-    appName: "ManaScrewed",
+    appName: "Urza's grimoire",
     cardEndpoint: "/api/cards/",
     deckEndpoint: "/api/decks/",
     userDeckEndpoint: "/api/users/phury/decks/",
@@ -111,22 +111,22 @@ const CardResource = {
             });
     },
     getCardsInDeck: function(deck) {
-        return new Promise(function(resolve, reject) {
+        return new Promise((resolve, reject) => {
             const promises = [];
             deck.cards.map((elt, i) => {
-                var space = elt.indexOf(" ");
-                var numberOfCards = elt.substring(0, space);
-                var cardName = elt.substring(space+1, elt.length);
+                const space = elt.indexOf(" ");
+                const numberOfCards = elt.substring(0, space);
+                const cardName = elt.substring(space+1, elt.length);
                 promises.push(
-                    new Promise(function(resolve, reject) {
-                        CardResource.getCardByName(cardName)
-                            .then(data => {
-                                data.amount = numberOfCards;
-                                resolve(data);
-                            }, error => {
-                                reject(error);
-                            });
-                    })
+                    CardResource.getCardByName(cardName)
+                        .then(data => {
+                            data.amount = numberOfCards;
+                            return data;
+                        })
+                        .catch(error => {
+                            console.log(error+": could not retrieve card "+cardName);
+                            return {amount: numberOfCards, name: cardName, manaCost: "", convertedManaCost: 0, links: {}};// TODO: Handle null fields in CardInfoComponent to be more robust
+                        })
                 );
             });
             Promise.all(promises).then(cards => {
@@ -147,14 +147,163 @@ const StashResource = {
     }
 }
 
-const FabComponent = React.createClass({
+
+const Navigation = React.createClass({
+    componentDidMount: function() {
+        jqueryHandle();
+    },
     render: function() {
         return (
-            <div className="fixed-action-btn">
-                <Link to={this.props.to} className="btn-floating btn-large waves-effect waves-light amber">
-                    <i className="material-icons">{this.props.icon}</i>
-                </Link>
-            </div>
+            <nav>
+                <div className="nav-wrapper blue">
+                    <ul className="left">
+                        {this.props.backUrl &&
+                            <li><Link to={this.props.backUrl}><i className="material-icons left">arrow_back</i></Link></li>
+                        }
+                    </ul>
+                    <a href="#" className="brand-logo">{this.props.title}</a>
+                    <ul className="right">
+                        {this.props.menuItems && this.props.menuItems.map((menuItem, i) => {
+                            return <li key={i}><Link to={menuItem.link}>{menuItem.title}</Link></li>;
+                        })}
+                        {this.props.contextMenuItems &&
+                            <li><a className="dropdown-button" href="#!" data-activates="contextual-dropdown"><i className="material-icons">more_vert</i></a></li>
+                        }
+                    </ul>
+                </div>
+                <ul id="contextual-dropdown" className="dropdown-content">
+                    <li><Link to="/deck"><i className="material-icons">view_list</i>My Decks</Link></li>
+                    <li><Link to="/settings"><i className="material-icons">settings</i>Settings</Link></li>
+                </ul>
+                <div id="search-bar" className="row white-text grey darken-3" >
+                    <div className="container">
+                        <div className="input-field col s12">
+                            <input type="text" id="autocomplete-input" className="autocomplete" placeholder="search ..." />
+                        </div>
+                    </div>
+                </div>
+            </nav>
+        );
+    }
+});
+
+const FabComponent = React.createClass({
+    render: function() {
+        if (this.props.menuItems.length == 1) {
+            return (
+                <div className="fixed-action-btn">
+                    <Link to={this.props.menuItems[0].link} className="btn-floating btn-large amber">
+                       <i className="material-icons">{this.props.menuItems[0].icon}</i>
+                    </Link>
+                </div>
+            );
+        } else if (this.props.menuItems.length > 1) {
+            const menuItems = this.props.menuItems.map((menuItem, i) => {
+                return (
+                    <li key={i}>
+                        <Link to={menuItem.link} className={"modal-trigger btn-floating "+menuItem.color}>
+                            <i className="material-icons">{menuItem.icon}</i>
+                        </Link>
+                        <span className="mobile-fab-tip">{menuItem.name}</span>
+                    </li>
+                );
+            });
+            return (
+                <div className="fixed-action-btn">
+                    <a className="btn-floating btn-large amber">
+                      <i className="large material-icons">add</i>
+                    </a>
+                    <ul>
+                        {menuItems}
+                    </ul>
+                </div>
+            );
+        } else {
+            return null;
+        }
+    }
+});
+
+
+const Manacost = React.createClass({
+    render: function() {
+        const elements = this.props.mc
+            .split(/{(.*?)}/)
+            .filter(str => { return str.trim() != ""; })
+            .map((elt, i) => {
+                return (<i key={i} className={"ms ms-cost ms-"+elt}></i>);
+            });
+        return (
+            <span className="mc">{elements}</span>
+        );
+    }
+});
+
+const Oracle = React.createClass({
+    render: function() {
+        const elements = this.props.text
+            .split(/{(.*?)}/)
+            .filter(str => { return str.trim() != ""; })
+            .map((elt, i) => {
+                switch (elt.toLowerCase()) {
+                    case 'w':
+                    case 'u':
+                    case 'b':
+                    case 'r':
+                    case 'g':
+                    case 'c':
+                    case 'p':
+                    case 's':
+                    case 'x':
+                    case 'y':
+                    case 'z':
+                    case '1':
+                    case '2':
+                    case '3':
+                    case '4':
+                    case '5':
+                    case '6':
+                    case '7':
+                    case '8':
+                    case '9':
+                    case '10':
+                    case '11':
+                    case '12':
+                    case '13':
+                    case '14':
+                    case '15':
+                    case '16':
+                    case '17':
+                    case '18':
+                    case '19':
+                    case '20':
+                    case 'e':
+                        return (
+                            <span key={i}>
+                                <span className="sr-only">{'{'+elt+'}'}</span>
+                                <i className={"ms ms-cost ms-"+elt.toLowerCase()}></i>
+                            </span>
+                        );
+                    case 't':
+                        return (
+                            <span key={i}>
+                                <span className="sr-only">{'{'+elt+'}'}</span>
+                                <i className="ms ms-cost ms-tap"></i>
+                            </span>
+                        );
+                    case 'q':
+                        return (
+                            <span key={i}>
+                                <span className="sr-only">{'{'+elt+'}'}</span>
+                                <i className="ms ms-cost ms-untap"></i>
+                            </span>
+                        );
+                    default:
+                        return <span key={i}>{elt}</span>;
+                }
+            });
+        return (
+            <span>{elements}</span>
         );
     }
 });
@@ -319,59 +468,44 @@ const DeckDeleteComponent = React.createClass({
         if (this.state.deck == null) return null;
 
         return (
-            <div className="container">
-                <div className="row">
-                    <form onSubmit={this.handleDeleteDeck} method="post">
-                        <p> You are about to delete deck <em>{this.state.deck.name}</em>. To continue, type the name of the deck:</p>
-                        <div className="row">
-                            <div className="input-field col s12">
-                                <input
-                                    id="input-deck-name"
-                                    type="text"
-                                    name="deckName"
-                                    value={this.state.deckName}
-                                    onChange={this.handleChange} />
-                                <label htmlFor="input-deck-name">Deck to delete</label>
+            <main>
+                <Navigation
+                    title={"Delete deck "+this.state.deck.name}
+                    backUrl={"/decks/"+this.state.deck.id}
+                    menuItems={[
+                        {
+                            title: "My decks",
+                            link: "/decks"
+                        },
+                        {
+                            title: "Settings",
+                            link: "/settings"
+                        }
+                    ]} />
+                <div className="container">
+                    <div className="row">
+                        <form onSubmit={this.handleDeleteDeck} method="post">
+                            <p> You are about to delete deck <strong>{this.state.deck.name}</strong>. To continue, type the name of the deck:</p>
+                            <div className="row">
+                                <div className="input-field col s12">
+                                    <input
+                                        id="input-deck-name"
+                                        type="text"
+                                        name="deckName"
+                                        value={this.state.deckName}
+                                        onChange={this.handleChange} />
+                                    <label htmlFor="input-deck-name">Deck to delete</label>
+                                </div>
                             </div>
-                        </div>
-                        <div className="row">
-                            <div className="input-field col s12">
-                                <input type="submit" className="btn waves-effect waves-light red" value="Delete" />
+                            <div className="row">
+                                <div className="input-field col s12">
+                                    <input type="submit" className="btn waves-effect waves-light red" value="Delete" />
+                                </div>
                             </div>
-                        </div>
-                    </form>
+                        </form>
+                    </div>
                 </div>
-            </div>
-        );
-    }
-});
-
-const Manacost = React.createClass({
-    color: function(elt) {
-        switch (elt) {
-            case "w":
-                return "#fff176";
-            case "u":
-                return "#2196f3";
-            case "b":
-                return "#212121";
-            case "r":
-                return "#e53935";
-            case "g":
-                return "#4caf50";
-            default:
-                return "";
-        }
-    },
-    render: function() {
-        const elements = this.props.mc
-            .split(/{(.*?)}/)
-            .filter(str => { return str.trim() != ""; })
-            .map((elt, i) => {
-                return (<i key={i} className={"ms ms-"+elt} style={{color:this.color(elt)}}></i>);
-            });
-        return (
-            <div className="mc">{elements}</div>
+            </main>
         );
     }
 });
@@ -391,18 +525,26 @@ const CardInfoComponent = React.createClass({
             <div className="mtg-card-info">
                 <div className="row">
                     <div className="col s4">
-                        <img className="card-thumbnail side-a" src={this.props.card.links.image} />
+                        {this.props.card.links &&
+                            <Link to="/carousel"><img className="card-thumbnail side-a" src={this.props.card.links.image} /></Link>
+                        }
                         {this.props.card.links.hasOwnProperty('flip_image') &&
                             <img className="card-thumbnail side-b" src={this.props.card.links.flip_image} />
                         }
                     </div>
                     <div className="col s8">
-                        <p className="type">{this.props.card.type}</p>
-                        <div className="oracle">
-                            {this.props.card.oracle.split("\n").map((txt,i) => {
-                                return <p key={i}>{txt}</p>;
-                            })}
-                        </div>
+                        {this.props.card.type &&
+                            <div className="type">
+                                <p>{this.props.card.type}</p>
+                            </div>
+                        }
+                        {this.props.card.oracle &&
+                            <div className="oracle">
+                                {this.props.card.oracle.split("\n").map((txt,i) => {
+                                    return <p key={i}><Oracle text={txt} /></p>;
+                                })}
+                            </div>
+                        }
                         {this.props.card.powerToughness &&
                             <div className="powerToughness">
                                 <p>{this.props.card.powerToughness}</p>
@@ -435,6 +577,44 @@ const CardTile = React.createClass({
                 </div>
             </div>
         );
+    }
+});
+
+const CarouselComponent = React.createClass({
+    componentDidMount: function() {
+
+    },
+    render: function() {
+        return (
+            <main>
+                <Navigation
+                    title="Carousel"
+                    backUrl="/decks"
+                    menuItems={[
+                        {
+                            title: "My decks",
+                            link: "/decks"
+                        },
+                        {
+                            title: "Settings",
+                            link: "/settings"
+                        }
+                    ]} />
+                <div className="container">
+                    <div className="card">
+                        <div className="card-content">
+                            <div className="carousel carousel-slider">
+                                <a className="carousel-item" href="#one!"><img src="http://mtg.wtf/cards_hq/akh/82.png" /></a>
+                                <a className="carousel-item" href="#two!"><img src="http://mtg.wtf/cards_hq/akh/59.png" /></a>
+                                <a className="carousel-item" href="#three!"><img src="http://mtg.wtf/cards_hq/akh/136.png" /></a>
+                                <a className="carousel-item" href="#four!"><img src="http://mtg.wtf/cards_hq/akh/21.png" /></a>
+                                <a className="carousel-item" href="#four!"><img src="http://mtg.wtf/cards_hq/akh/182.png" /></a>
+                             </div>
+                         </div>
+                    </div>
+                 </div>
+             </main>
+         );
     }
 });
 
@@ -502,13 +682,26 @@ const DeckDetailComponent = React.createClass({
                             {this.state.cards.map((card, i) => {
                                 return (
                                     <li key={i}>
-                                        <div className="collapsible-header">{card.amount +"x "+ card.name} <Manacost mc={card.manaCost} /></div>
+                                        <div className="collapsible-header">{card.amount +" "+ card.name} <Manacost mc={card.manaCost} /></div>
                                         <div className="collapsible-body"><CardInfoComponent card={card}/></div>
                                     </li>
                                 );
                             })}
                         </ul>
-                        <FabComponent to={"/editor/decks/"+this.state.deck.id} icon="edit" />
+                        <FabComponent
+                            menuItems={[
+                            {
+                                link: "/delete/decks/"+this.state.deck.id,
+                                icon: "delete",
+                                name: "delete",
+                                color: "red"
+                            },
+                            {
+                                link: "/editor/decks/"+this.state.deck.id,
+                                icon: "edit",
+                                name: "edit",
+                                color: "blue"
+                            }]} />
                     </div>
                 </main>
             );
@@ -599,48 +792,14 @@ const MyDecksComponent = React.createClass({
                     <ul className="collection">
                         {deckEntries}
                     </ul>
-                    <FabComponent to={"/editor/decks"} icon="add" />
+                    <FabComponent
+                        menuItems={[
+                        {
+                            link: "/editor/decks",
+                            icon: "add"
+                        }]} />
                 </div>
             </main>
-        );
-    }
-});
-
-const Navigation = React.createClass({
-    componentDidMount: function() {
-        jqueryHandle();
-    },
-    render: function() {
-        return (
-            <nav>
-                <div className="nav-wrapper blue">
-                    <ul className="left">
-                        {this.props.backUrl &&
-                            <li><Link to={this.props.backUrl}><i className="material-icons left">arrow_back</i></Link></li>
-                        }
-                    </ul>
-                    <a href="#" className="brand-logo">{this.props.title}</a>
-                    <ul className="right">
-                        {this.props.menuItems && this.props.menuItems.map((menuItem, i) => {
-                            return <li key={i}><Link to={menuItem.link}>{menuItem.title}</Link></li>;
-                        })}
-                        {this.props.contextMenuItems &&
-                            <li><a className="dropdown-button" href="#!" data-activates="contextual-dropdown"><i className="material-icons">more_vert</i></a></li>
-                        }
-                    </ul>
-                </div>
-                <ul id="contextual-dropdown" className="dropdown-content">
-                    <li><Link to="/deck"><i className="material-icons">view_list</i>My Decks</Link></li>
-                    <li><Link to="/settings"><i className="material-icons">settings</i>Settings</Link></li>
-                </ul>
-                <div id="search-bar" className="row white-text grey darken-3" >
-                    <div className="container">
-                        <div className="input-field col s12">
-                            <input type="text" id="autocomplete-input" className="autocomplete" placeholder="search ..." />
-                        </div>
-                    </div>
-                </div>
-            </nav>
         );
     }
 });
@@ -692,6 +851,7 @@ const MtgApp = React.createClass({
                   <Route exact path="/editor/decks/:deckId" component={DeckEditorComponent} />
                   <Route exact path="/delete/decks/:deckId" component={DeckDeleteComponent} />
                   <Route exact path="/cards/:cardName" component={CardComponent} />
+                  <Route exact path="/carousel" component={CarouselComponent} />
             </Switch>
 		);
     }
@@ -731,4 +891,7 @@ function jqueryHandle() {
 
     // Initialize dropdown items in menu
     $("#contextual-dropdown").dropdown();
+
+    // Initialize carousel
+    $('.carousel.carousel-slider').carousel({fullWidth: true});
 }

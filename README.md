@@ -8,9 +8,9 @@ Test the app : [https://manascrewd.herokuapp.com](https://manascrewd.herokuapp.c
 # Todo
 
 - [x] Custom navigation actions
-- [ ] Delete deck link in deck fab
+- [x] "Delete deck" link in deck fab
 - [x] Show mana cost in card info
-- [ ] Show mana symbol in card oracle
+- [x] Show mana symbol in card oracle
 - [ ] Check cards at deck creation
 - [ ] Use card entity in deck model
 - [ ] Welcome page [https://magicthegathering.io/](example)
