@@ -14,10 +14,12 @@ Test the app : [https://manascrewd.herokuapp.com](https://manascrewd.herokuapp.c
 - [x] "Delete deck" link in deck fab
 - [x] Show mana cost in card info
 - [x] Show mana symbol in card oracle
+- [ ] Implement card ordering in deck
 - [ ] Validate cards at deck creation
 - [ ] Do not allow empty deck names at creation
 - [ ] Update deck model to reference cards and not strings
 - [ ] Create a welcome page (example: [https://magicthegathering.io/](magicthegathering.io))
+- [ ] Application shell
 - [ ] Stash API
 - [ ] Swagger
 - [ ] Add card to collection
@@ -38,6 +40,12 @@ Test the app : [https://manascrewd.herokuapp.com](https://manascrewd.herokuapp.c
 - [ ] i18n
 
 # Release notes
+
+## v0.08
+- ui cleanup (part4)
+- Show icons in navigation
+- Handle functions as links in navigation
+- Add lightbox to show cards in deck detail view
 
 ## v0.07
 - ui cleanup (part3)

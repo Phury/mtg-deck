@@ -72,7 +72,7 @@ const DeckResource = {
             });
     },
     createDeck: function(deck) {
-        const uri = Config.host + Config.userDeckEndpoint;
+        const uri = Config.host + Config.deckEndpoint;
         return fetch(uri, {
             method: "put",
             body: JSON.stringify(deck),
@@ -84,7 +84,7 @@ const DeckResource = {
             });
     },
     updateDeck: function(deck) {
-        const uri = Config.host + Config.userDeckEndpoint;
+        const uri = Config.host + Config.deckEndpoint + deck.id;
         return fetch(uri, {
             method: "post",
             body: JSON.stringify(deck),
@@ -115,7 +115,7 @@ const CardResource = {
             const promises = [];
             deck.cards.map((elt, i) => {
                 const space = elt.indexOf(" ");
-                const numberOfCards = elt.substring(0, space);
+                const numberOfCards = parseInt(elt.substring(0, space));
                 const cardName = elt.substring(space+1, elt.length);
                 promises.push(
                     CardResource.getCardByName(cardName)
@@ -164,7 +164,29 @@ const Navigation = React.createClass({
                     <a href="#" className="brand-logo">{this.props.title}</a>
                     <ul className="right">
                         {this.props.menuItems && this.props.menuItems.map((menuItem, i) => {
-                            return <li key={i}><Link to={menuItem.link}>{menuItem.title}</Link></li>;
+                            if (typeof menuItem.link === 'string') {
+                                return (
+                                    <li key={i}>
+                                        <Link to={menuItem.link}>
+                                            {menuItem.icon &&
+                                                <i className="material-icons left">{menuItem.icon}</i>
+                                            }
+                                            {menuItem.title}
+                                        </Link>
+                                    </li>
+                                );
+                            } else {
+                                return (
+                                    <li key={i}>
+                                        <a href="#" onClick={menuItem.link}>
+                                            {menuItem.icon &&
+                                                <i className="material-icons left">{menuItem.icon}</i>
+                                            }
+                                            {menuItem.title}
+                                        </a>
+                                    </li>
+                                );
+                            }
                         })}
                         {this.props.contextMenuItems &&
                             <li><a className="dropdown-button" href="#!" data-activates="contextual-dropdown"><i className="material-icons">more_vert</i></a></li>
@@ -316,6 +338,7 @@ var DeckEditorComponent = React.createClass({
         if (this.props.match.params.deckId) {
             DeckResource.getDeckById(this.props.match.params.deckId)
                 .then((data) => {
+                    console.log(data);
                     this.setState({ deckName: data.name, deckCards: data.cards.join("\n"), deckId: data.id });
                 });
         }
@@ -333,15 +356,15 @@ var DeckEditorComponent = React.createClass({
     submitDeck: function(e) {
         e.preventDefault();
         const deck = {
+            id: this.state.deckId,
             name: this.state.deckName,
             cards: this._parseData(this.state.deckCards),
-            submittedBy: "phury",
-            deckId: this.state.deckId
+            submittedBy: "phury"
         };
         if (this.props.match.params.deckId) {
             DeckResource.updateDeck(deck)
                 .then((data) => {
-                    console.log("created deck and got response");
+                    console.log("updated deck and got response");
                     console.log(data);
                     this.setState(this.getInitialState());
                     this.props.history.push("/decks/"+data.id);
@@ -526,7 +549,7 @@ const CardInfoComponent = React.createClass({
                 <div className="row">
                     <div className="col s4">
                         {this.props.card.links &&
-                            <Link to="/carousel"><img className="card-thumbnail side-a" src={this.props.card.links.image} /></Link>
+                            <a href={this.props.card.links.image} data-lightbox="deck-1" data-title={this.props.card.name}><img className="card-thumbnail side-a" src={this.props.card.links.image} /></a>
                         }
                         {this.props.card.links.hasOwnProperty('flip_image') &&
                             <img className="card-thumbnail side-b" src={this.props.card.links.flip_image} />
@@ -580,47 +603,9 @@ const CardTile = React.createClass({
     }
 });
 
-const CarouselComponent = React.createClass({
-    componentDidMount: function() {
-
-    },
-    render: function() {
-        return (
-            <main>
-                <Navigation
-                    title="Carousel"
-                    backUrl="/decks"
-                    menuItems={[
-                        {
-                            title: "My decks",
-                            link: "/decks"
-                        },
-                        {
-                            title: "Settings",
-                            link: "/settings"
-                        }
-                    ]} />
-                <div className="container">
-                    <div className="card">
-                        <div className="card-content">
-                            <div className="carousel carousel-slider">
-                                <a className="carousel-item" href="#one!"><img src="http://mtg.wtf/cards_hq/akh/82.png" /></a>
-                                <a className="carousel-item" href="#two!"><img src="http://mtg.wtf/cards_hq/akh/59.png" /></a>
-                                <a className="carousel-item" href="#three!"><img src="http://mtg.wtf/cards_hq/akh/136.png" /></a>
-                                <a className="carousel-item" href="#four!"><img src="http://mtg.wtf/cards_hq/akh/21.png" /></a>
-                                <a className="carousel-item" href="#four!"><img src="http://mtg.wtf/cards_hq/akh/182.png" /></a>
-                             </div>
-                         </div>
-                    </div>
-                 </div>
-             </main>
-         );
-    }
-});
-
 const DeckDetailComponent = React.createClass({
     getInitialState: function() {
-        return { deck: null, viewMode: "LIST" };
+        return { deck: null, viewMode: "list", cardFilter: "type" };
     },
     componentDidMount: function() {
         DeckResource.getDeckById(this.props.match.params.deckId)
@@ -635,16 +620,21 @@ const DeckDetailComponent = React.createClass({
     },
     handleViewList: function(e) {
         e.preventDefault();
-        this.setState({ viewMode: "LIST" });
+        this.setState({ viewMode: "list" });
     },
     handleViewModule: function(e) {
         e.preventDefault();
-        this.setState({ viewMode: "MODULE" });
+        this.setState({ viewMode: "module" });
+    },
+    handleCardFilter: function(e) {
+        e.preventDefault();
+        this.setState({ filter: evt.target.value });
+        // TODO: put cards in map with filter as key and render
     },
     render: function() {
         if (this.state.deck == null) return null;
 
-        if (this.state.viewMode === "MODULE") {
+        if (this.state.viewMode === "module") {
             return (
                 <div className="container">
                     <div className="row">
@@ -658,9 +648,27 @@ const DeckDetailComponent = React.createClass({
                 </div>
             );
         } else {
-
+            var totalCards = 0;
             // <a href="#" onClick={this.handleViewList} className="waves-effect waves-light"><i className="material-icons">view_list</i></a>
             // <a href="#" onClick={this.handleViewModule} className="waves-effect waves-light"><i className="material-icons">view_module</i></a>
+
+            const cardFilter = (
+                <div className="row">
+                    <form className="col s12">
+                        <div className="row">
+                            <div className="input-field col s6">
+                                <select>
+                                    <option value="type">Type</option>
+                                    <option value="color">Color</option>
+                                    <option value="rarity">Rarity</option>
+                                    <option value="cmc">Cmc</option>
+                                </select>
+                                <label>Sort by</label>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            );
 
             return (
                 <main>
@@ -668,6 +676,10 @@ const DeckDetailComponent = React.createClass({
                         title={this.state.deck.name}
                         backUrl="/decks"
                         menuItems={[
+                            {
+                                link: this.handleViewModule,
+                                icon: "view_module"
+                            },
                             {
                                 title: "My decks",
                                 link: "/decks"
@@ -678,8 +690,10 @@ const DeckDetailComponent = React.createClass({
                             }
                         ]} />
                     <div className="container">
+                        {cardFilter}
                         <ul className="collapsible" data-collapsible="expandable">
                             {this.state.cards.map((card, i) => {
+                                totalCards+=card.amount;
                                 return (
                                     <li key={i}>
                                         <div className="collapsible-header">{card.amount +" "+ card.name} <Manacost mc={card.manaCost} /></div>
@@ -688,6 +702,7 @@ const DeckDetailComponent = React.createClass({
                                 );
                             })}
                         </ul>
+                        total cards: {totalCards}
                         <FabComponent
                             menuItems={[
                             {
@@ -850,7 +865,6 @@ const MtgApp = React.createClass({
                   <Route exact path="/editor/decks/:deckId" component={DeckEditorComponent} />
                   <Route exact path="/delete/decks/:deckId" component={DeckDeleteComponent} />
                   <Route exact path="/cards/:cardName" component={CardComponent} />
-                  <Route exact path="/carousel" component={CarouselComponent} />
             </Switch>
 		);
     }
@@ -865,7 +879,6 @@ ReactDOM.render(
 
 function jqueryHandle() {
     console.log("initializing jquery");
-    console.log($("#contextual-dropdown"));
     // handle toggle of the search bar
     var searchBar = $('div#search-bar'),
         searchInput = searchBar.find('input');
@@ -891,6 +904,6 @@ function jqueryHandle() {
     // Initialize dropdown items in menu
     $("#contextual-dropdown").dropdown();
 
-    // Initialize carousel
-    $('.carousel.carousel-slider').carousel({fullWidth: true});
+    // Initialize select components
+    $("select").material_select();
 }

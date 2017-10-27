@@ -71,7 +71,10 @@ nav .brand-logo {
     height: 280px;
 }
 
-// mobile fab tooltip
+/*
+ * mobile fab tooltip
+ * see: https://codepen.io/anon/pen/rxMXob
+ */
 .mobile-fab-tip {
 	position: fixed;
 	right: 85px;
