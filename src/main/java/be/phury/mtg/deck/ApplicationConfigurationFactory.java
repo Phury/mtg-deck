@@ -1,5 +1,7 @@
 package be.phury.mtg.deck;
 
+import be.phury.mtg.deck.ApplicationConfiguration;
+import be.phury.mtg.deck.exception.ConfigurationException;
 import be.phury.utils.JsonMapper;
 import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.springframework.context.annotation.Bean;

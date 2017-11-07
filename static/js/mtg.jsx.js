@@ -13,6 +13,8 @@ const Config = {
     cardEndpoint: "/api/cards/",
     cardSearchEndpoint: "/api/cards/search?q=",
     deckEndpoint: "/api/decks/",
+    createDeckEndpoint: "/api/users/phury/decks/",
+    updateDeckEndpoint: "/api/decks/",
     userDeckEndpoint: "/api/users/phury/decks/",
     logger: {
         level: "DEBUG"
@@ -66,7 +68,7 @@ const DeckResource = {
             });
     },
     createDeck: function(deck) {
-        const uri = Config.host + Config.deckEndpoint;
+        const uri = Config.host + Config.createDeckEndpoint;
         return fetch(uri, {
             method: "put",
             body: JSON.stringify(deck),
@@ -74,11 +76,11 @@ const DeckResource = {
         })
             .then((response) => {
                 if (response.ok) return response.json();
-                else throw new Error("error calling uri"+ uri + "got response status " + response.status);
+                else throw new Error("error calling uri ("+ uri + ") got response status " + response.status);
             });
     },
     updateDeck: function(deck) {
-        const uri = Config.host + Config.deckEndpoint + deck.id;
+        const uri = Config.host + Config.updateDeckEndpoint + deck.id;
         return fetch(uri, {
             method: "post",
             body: JSON.stringify(deck),
@@ -86,7 +88,7 @@ const DeckResource = {
         })
             .then((response) => {
                 if (response.ok) return response.json();
-                else throw new Error("error calling uri"+ uri + "got response status " + response.status);
+                else throw new Error("error calling uri ("+ uri + ") got response status " + response.status);
             });
     }
 }
@@ -201,11 +203,11 @@ const Navigation = React.createClass({
                     </ul>
                 </div>
                 <ul id="contextual-dropdown" className="dropdown-content">
-                    <li><Link to="/deck"><i className="material-icons">view_list</i>My Decks (dropdown)</Link></li>
+                    <li><Link to="/deck"><i className="material-icons">view_list</i>Grimoire (dropdown)</Link></li>
                     <li><Link to="/settings"><i className="material-icons">settings</i>Settings (dropdown)</Link></li>
                 </ul>
                 <ul id="slide-out" className="side-nav">
-                    <li><Link to="/deck"><i className="material-icons">view_list</i>My Decks (sidenav)</Link></li>
+                    <li><Link to="/deck"><i className="material-icons">view_list</i>Grimoire (sidenav)</Link></li>
                     <li><Link to="/settings"><i className="material-icons">settings</i>Settings (sidenav)</Link></li>
                 </ul>
                 <div id="search-bar" className="row white-text grey darken-3" >
@@ -400,7 +402,7 @@ var DeckEditorComponent = React.createClass({
                     backUrl={this.props.match.params.deckId ? "/decks/"+this.props.match.params.deckId : "/decks"}
                     menuItems={[
                         {
-                            title: "My decks",
+                            title: "Grimoire",
                             link: "/decks"
                         },
                         {
@@ -509,7 +511,7 @@ const DeckDeleteComponent = React.createClass({
                     backUrl={"/decks/"+this.state.deck.id}
                     menuItems={[
                         {
-                            title: "My decks",
+                            title: "Grimoire",
                             link: "/decks"
                         },
                         {
@@ -568,44 +570,23 @@ const CardInfoComponent = React.createClass({
                         }
                     </div>
                     <div id="oracle" className="col s8">
-                        <table>
-                            <tbody>
-                                {this.props.card.name &&
-                                    <tr>
-                                        <th>name:</th>
-                                        <td>{this.props.card.name}</td>
-                                    </tr>
-                                }
-                                {this.props.card.type &&
-                                    <tr>
-                                        <th>type:</th>
-                                        <td>{this.props.card.type}</td>
-                                    </tr>
-                                }
-                                {this.props.card.oracle &&
-                                    <tr>
-                                        <th>oracle:</th>
-                                        <td>{this.props.card.oracle.split("\n").map((txt,i) => {
-                                                return <span key={i}><Oracle text={txt} /></span>;
-                                        })}</td>
-                                    </tr>
-                                }
-                                {this.props.card.powerToughness &&
-                                    <tr>
-                                        <th>p/t:</th>
-                                        <td>{this.props.card.powerToughness}</td>
-                                    </tr>
-                                }
-                                {this.props.card.links.hasOwnProperty('flip_name') &&
-                                    <tr>
-                                        <th>other side:</th>
-                                        <td>
-                                            <Link to={{pathname: "/cards/"+this.props.card.links.flip_name}}>{this.props.card.links.flip_name}</Link>
-                                        </td>
-                                    </tr>
-                                }
-                            </tbody>
-                        </table>
+                        {this.props.card.name &&
+                            <h3><Link to={"/cards/"+this.props.card.name}>{this.props.card.name}</Link><sup><Manacost mc={this.props.card.manaCost} /></sup></h3>
+                        }
+                        {this.props.card.type &&
+                            <b>{this.props.card.type}</b>
+                        }
+                        {this.props.card.oracle &&
+                           <span>{this.props.card.oracle.split("\n").map((txt,i) => {
+                               return <p key={i}><Oracle text={txt} /></p>;
+                           })}</span>
+                        }
+                        {this.props.card.powerToughness &&
+                            <b>{this.props.card.powerToughness}</b>
+                        }
+                        {this.props.card.links.hasOwnProperty('flip_name') &&
+                            <p>card has ohter side: <Link to={{pathname: "/cards/"+this.props.card.links.flip_name}}>{this.props.card.links.flip_name}</Link></p>
+                        }
                     </div>
                 </div>
             </div>
@@ -705,7 +686,7 @@ const DeckDetailComponent = React.createClass({
                                 icon: "view_module"
                             },
                             {
-                                title: "My decks",
+                                title: "Grimoire",
                                 link: "/decks"
                             },
                             {
@@ -720,7 +701,7 @@ const DeckDetailComponent = React.createClass({
                                 totalCards+=card.amount;
                                 return (
                                     <li key={i}>
-                                        <div className="collapsible-header">{card.amount +" "+ card.name} <Manacost mc={card.manaCost} /></div>
+                                        <div className="collapsible-header">{card.amount}{'\u00A0'}<a>{card.name}</a> <Manacost mc={card.manaCost} /></div>
                                         <div className="collapsible-body"><CardInfoComponent card={card}/></div>
                                     </li>
                                 );
@@ -872,7 +853,7 @@ const MyDecksComponent = React.createClass({
         return (
             <main>
                 <Navigation
-                    title="My decks"
+                    title="Grimoire"
                     backUrl="/" />
                 <div className="container">
                     <ul className="collection">
@@ -906,7 +887,7 @@ const HomeComponent = React.createClass({
                     navbarColor="transparent"
                     menuItems={[
                         {
-                            title: "My decks",
+                            title: "Grimoire",
                             link: "/decks"
                         },
                         {
@@ -916,9 +897,11 @@ const HomeComponent = React.createClass({
                     ]} />
                 <div className="container">
                     <h1>Hello brave wizard!</h1>
+                    <br/>
                     <p>
-                    Welcome to the {Config.appName} app.
-                    Select a deck in your deck list or <Link to="/editor/decks" className="">create</Link> one.
+                    Welcome to <span className="app-name">{Config.appName}</span>.
+                    <br/>
+                    Select a deck in your <Link to="/decks" className=""> grimoire</Link> or <Link to="/editor/decks" className="">create</Link> one.
                     </p>
                     <div className="card search-card">
                         <div className="row">

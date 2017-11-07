@@ -1,11 +1,11 @@
 package be.phury.mtg.deck.controller;
 
 import be.phury.mtg.deck.ApiController;
-import be.phury.mtg.deck.Card;
-import be.phury.mtg.deck.DeckEditRequest;
+import be.phury.mtg.deck.model.Card;
+import be.phury.mtg.deck.model.DeckEditRequest;
 import be.phury.mtg.deck.provider.CardProvider;
 import be.phury.mtg.deck.provider.DeckProvider;
-import be.phury.mtg.deck.Entity;
+import be.phury.mtg.deck.model.Entity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,7 +40,7 @@ public class DeckController {
         return deckProvider
                 .getDecksByUser(userId)
                 .stream()
-                .map(d -> toInfo(d))
+                .map(d -> createEntity(d))
                 .collect(Collectors.toList());
     }
 
@@ -56,47 +56,46 @@ public class DeckController {
     public ResponseEntity<Entity> createDeck(@PathVariable String userId, @RequestBody DeckEditRequest deck) {
         final DeckEditRequest d = deckProvider.createDeckForUser(userId, deck);
         // TODO: check null and return 500
-        return ResponseEntity.status(HttpStatus.CREATED).body(toInfo(d));
+        return ResponseEntity.status(HttpStatus.CREATED).body(createEntity(d));
     }
 
     @RequestMapping(path = "/decks/{deckId}", method = RequestMethod.DELETE)
     public ResponseEntity<Entity> deleteDeck(@PathVariable String deckId) {
         final DeckEditRequest deletedDeck = getDeckById(deckId);
         if (deckProvider.deleteDeck(deckId)) {
-            return ResponseEntity.status(HttpStatus.ACCEPTED).body(toInfo(deletedDeck));
+            return ResponseEntity.status(HttpStatus.ACCEPTED).body(createEntity(deletedDeck));
         } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(toInfo(deckId, MessageFormat.format("could not delete deck with id {0}", deckId)));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(createEntity(deckId, MessageFormat.format("could not delete deck with id {0}", deckId)));
         }
     }
 
     @RequestMapping(path = "/decks/{deckId}", method = RequestMethod.POST)
     public ResponseEntity<Entity> updateDeck(@PathVariable String deckId, @RequestBody DeckEditRequest toUpdate) {
         final DeckEditRequest updatedDeck = deckProvider.updateDeck(toUpdate);
-        return ResponseEntity.status(HttpStatus.ACCEPTED).body(toInfo(updatedDeck));
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(createEntity(updatedDeck));
     }
 
-    private Entity toInfo(final String id, final String message) {
+    private Entity createEntity(final String id, final String message) {
         return new Entity() {{
             setId(id);
             setDisplayName(message);
         }};
     }
 
-    private Entity toInfo(final DeckEditRequest d) {
-        final String uri = MessageFormat.format("{0}/decks/{1}", ApiController.API_ROOT, d.getId());
-        final Card firstCard = getFirstCard(d);
+    private Entity createEntity(final DeckEditRequest request) {
+        final String uri = MessageFormat.format("{0}/decks/{1}", ApiController.API_ROOT, request.getId());
+        final Card firstCard = getFirstCard(request);
         return new Entity() {{
-            setId(d.getId());
+            setId(request.getId());
             setType("deck");
-            setDisplayName(d.getName());
-            setUri(uri);
+            setDisplayName(request.getName());
             addLink("self", uri);
             addLink("image", firstCard.getLinks().get("image"));
         }};
     }
 
-    private Card getFirstCard(DeckEditRequest d) {
-        final String cardInfo = d.getCards().get(0);
+    private Card getFirstCard(DeckEditRequest request) {
+        final String cardInfo = request.getCards().get(0);
         final Integer space = cardInfo.indexOf(" ");
         final String cardName = cardInfo.substring(space+1, cardInfo.length());
         return cardProvider.getCardByName(cardName);

@@ -1,5 +1,6 @@
-package be.phury.mtg.deck;
+package be.phury.mtg.deck.model;
 
+import be.phury.mtg.deck.ApiModel;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
@@ -13,8 +14,6 @@ public class DeckEditRequest extends ApiModel {
     private String name;
     private String submittedBy;
     private List<String> cards;
-    private List<String> sideboard;
-    private List<String> maybeboard;
 
     public String getId() {
         return id;
@@ -46,22 +45,6 @@ public class DeckEditRequest extends ApiModel {
 
     public void setCards(List<String> cards) {
         this.cards = cards;
-    }
-
-    public List<String> getSideboard() {
-        return sideboard;
-    }
-
-    public void setSideboard(List<String> sideboard) {
-        this.sideboard = sideboard;
-    }
-
-    public List<String> getMaybeboard() {
-        return maybeboard;
-    }
-
-    public void setMaybeboard(List<String> maybeboard) {
-        this.maybeboard = maybeboard;
     }
 
     @Override

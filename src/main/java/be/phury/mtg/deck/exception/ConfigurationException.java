@@ -1,4 +1,4 @@
-package be.phury.mtg.deck;
+package be.phury.mtg.deck.exception;
 
 import java.text.MessageFormat;
 

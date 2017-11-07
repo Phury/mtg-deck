@@ -1,14 +1,9 @@
 package be.phury.mtg.deck;
 
+import be.phury.mtg.deck.model.DeckEditRequest;
 import be.phury.utils.DocumentMapper;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.mongodb.MongoClient;
-import com.mongodb.MongoClientURI;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
-import org.apache.commons.text.StrSubstitutor;
 import org.bson.Document;
 import org.junit.*;
 import org.junit.runner.RunWith;
@@ -17,10 +12,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import java.io.IOException;
-import java.text.MessageFormat;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.UUID;
 
 /**

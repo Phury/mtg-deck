@@ -3,7 +3,6 @@ package be.phury.mtg.deck;
 import be.phury.utils.MapBuilder;
 import be.phury.utils.SystemUtils;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.core.io.ByteArrayResource;

@@ -1,7 +1,8 @@
 package be.phury.mtg.deck.provider;
 
-import be.phury.mtg.deck.Card;
-import be.phury.mtg.deck.ElementNotFoundException;
+import be.phury.mtg.deck.model.Card;
+import be.phury.mtg.deck.exception.ElementNotFoundException;
+import be.phury.mtg.deck.exception.TechnicalException;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -49,14 +50,15 @@ public class CardProvider {
     }
 
     private Document fetchDom(String query) {
+        final String url = "http://mtg.wtf/card?q=" + urlEncode(query);
         try {
-            Document doc = Jsoup.connect("http://mtg.wtf/card?q=" + urlEncode(query)).get();
+            Document doc = Jsoup.connect(url).get();
             if (doc.select("div.results_summary").text().equals("No cards found")) {
                 throw new ElementNotFoundException("Card {0} not found", query);
             }
             return doc;
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new TechnicalException(e, "There was an error accessing service {0}", url);
         }
     }
 
@@ -64,7 +66,7 @@ public class CardProvider {
         try {
             return URLEncoder.encode(str, "UTF-8");
         } catch (UnsupportedEncodingException e) {
-            throw new RuntimeException(e);
+            throw new TechnicalException(e, "Unable to encode string {0}", str);
         }
     }
 

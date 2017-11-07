@@ -1,4 +1,6 @@
-package be.phury.mtg.deck;
+package be.phury.mtg.deck.model;
+
+import be.phury.mtg.deck.ApiModel;
 
 /**
  * A short version of an entity to reduce size of response. This can be used for:
@@ -9,7 +11,6 @@ public class Entity extends ApiModel {
     private String id;
     private String displayName;
     private String type;
-    private String uri;
 
     public String getId() {
         return id;
@@ -33,13 +34,5 @@ public class Entity extends ApiModel {
 
     public void setType(String type) {
         this.type = type;
-    }
-
-    public String getUri() {
-        return uri;
-    }
-
-    public void setUri(String uri) {
-        this.uri = uri;
     }
 }

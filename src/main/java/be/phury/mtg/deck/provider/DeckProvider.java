@@ -1,6 +1,6 @@
 package be.phury.mtg.deck.provider;
 
-import be.phury.mtg.deck.DeckEditRequest;
+import be.phury.mtg.deck.model.DeckEditRequest;
 import be.phury.mtg.deck.IdGenerator;
 import be.phury.utils.DocumentMapper;
 import org.springframework.beans.factory.annotation.Autowired;

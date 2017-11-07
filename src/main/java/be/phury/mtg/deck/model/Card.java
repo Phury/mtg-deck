@@ -1,4 +1,6 @@
-package be.phury.mtg.deck;
+package be.phury.mtg.deck.model;
+
+import be.phury.mtg.deck.ApiModel;
 
 import java.util.List;
 

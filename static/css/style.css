@@ -74,6 +74,10 @@ nav .nav-wrapper .transparent {
     font-size: 0.8rem;
 }
 
+sup .mc i {
+    font-size: 1rem;
+}
+
 .carousel {
    height: 480px !important;
 }

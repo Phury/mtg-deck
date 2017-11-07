@@ -1,5 +1,7 @@
 package be.phury.mtg.deck;
 
+import be.phury.mtg.deck.model.DeckEditRequest;
+import be.phury.mtg.deck.model.StashCardRequest;
 import be.phury.utils.DocumentMapper;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.slf4j.Logger;
@@ -67,6 +69,23 @@ public class Application {
         }
 
         DocumentMapper<DeckEditRequest> modelMapper = new DocumentMapper<>(DeckEditRequest.class);
+        modelMapper.addMixIn(MixIn.class);
+        return modelMapper;
+    }
+
+    @Bean
+    public DocumentMapper<StashCardRequest> stashCardRequestMapper() {
+        abstract class MixIn {
+            /*
+                see: https://github.com/FasterXML/jackson-docs/wiki/JacksonMixInAnnotations
+                mongo uses an internal _id but we have already an Id defined, override the serialization of _id
+                and just ignore it
+             */
+            //@JsonIgnore @JsonProperty("_id") abstract Object getId();
+            @JsonProperty("_id") abstract String getId();
+        }
+
+        DocumentMapper<StashCardRequest> modelMapper = new DocumentMapper<>(StashCardRequest.class);
         modelMapper.addMixIn(MixIn.class);
         return modelMapper;
     }

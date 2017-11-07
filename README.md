@@ -28,7 +28,7 @@ Test the app : [https://manascrewd.herokuapp.com](https://manascrewd.herokuapp.c
 - [ ] Update deck model to reference cards and not strings
 - [ ] Create a welcome page (example: [https://magicthegathering.io/](magicthegathering.io))
 - [ ] Application shell
-- [ ] Stash API
+- [x] Stash API
 - [ ] Swagger
 - [ ] Add card to collection
 - [ ] PWA
@@ -46,6 +46,11 @@ Test the app : [https://manascrewd.herokuapp.com](https://manascrewd.herokuapp.c
 - [ ] i18n
 
 # Release notes
+
+## v0.10
+- [x] Stash API
+- [x] Fix bug in deck creation where the deck could not be created
+
 ## v0.09
 - [x] Splash page
 - [x] Implement search

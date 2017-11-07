@@ -1,6 +1,6 @@
 package be.phury.mtg.deck.card;
 
-import be.phury.mtg.deck.Card;
+import be.phury.mtg.deck.model.Card;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;

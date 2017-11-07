@@ -1,6 +1,6 @@
 package be.phury.mtg.deck.card;
 
-import be.phury.mtg.deck.Card;
+import be.phury.mtg.deck.model.Card;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
