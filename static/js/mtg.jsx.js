@@ -11,6 +11,7 @@ const Config = {
     host: "",
     appName: "Urza's grimoire",
     cardEndpoint: "/api/cards/",
+    cardSearchEndpoint: "/api/cards/search?q=",
     deckEndpoint: "/api/decks/",
     userDeckEndpoint: "/api/users/phury/decks/",
     logger: {
@@ -26,13 +27,6 @@ const JSON_HEADERS = {
 const cloneObj = (obj) => {
     return JSON.parse(JSON.stringify(obj))
 }
-
-const autocompleteData = {
-  "Cancel": "http://mtg.wtf/cards/xln/47.png",
-  "Crush of Tentacles": "http://mtg.wtf/cards_hq/ogw/53.png",
-  "Rogue Elephant": "http://mtg.wtf/cards_hq/wl/81.png",
-  "Westvale Abbey": "http://mtg.wtf/cards_hq/soi/281a.png"
-};
 
 const DeckResource = {
     getDeckById: function(deckId) {
@@ -115,7 +109,7 @@ const CardResource = {
             const promises = [];
             deck.cards.map((elt, i) => {
                 const space = elt.indexOf(" ");
-                const numberOfCards = parseInt(elt.substring(0, space));
+                const numberOfCards = parseInt(elt.substring(0, space)) || 1;
                 const cardName = elt.substring(space+1, elt.length);
                 promises.push(
                     CardResource.getCardByName(cardName)
@@ -135,6 +129,18 @@ const CardResource = {
                 reject(error+": could not retrieve cards in deck "+deck.name);
             });
         });
+    },
+    searchCards: function(query) {
+        const uri = Config.host + Config.cardSearchEndpoint + query;
+        return fetch(uri)
+            .then((response) => {
+                if (response.ok) {
+                    console.log("response from " + uri);
+                    return response.json();
+                } else {
+                    throw new Error("error calling uri "+ uri + " got response status " + response.status);
+                }
+            });
     }
 }
 
@@ -149,13 +155,13 @@ const StashResource = {
 
 
 const Navigation = React.createClass({
-    componentDidMount: function() {
-        jqueryHandle();
+    getDefaultProps() {
+        return { navbarColor: "blue" };
     },
     render: function() {
         return (
-            <nav>
-                <div className="nav-wrapper blue">
+            <nav className={this.props.navbarColor}>
+                <div className="nav-wrapper">
                     <ul className="left">
                         {this.props.backUrl &&
                             <li><Link to={this.props.backUrl}><i className="material-icons left">arrow_back</i></Link></li>
@@ -191,16 +197,21 @@ const Navigation = React.createClass({
                         {this.props.contextMenuItems &&
                             <li><a className="dropdown-button" href="#!" data-activates="contextual-dropdown"><i className="material-icons">more_vert</i></a></li>
                         }
+                        <li><a href="#" className="toggle-search"><i className="material-icons">search</i></a></li>
                     </ul>
                 </div>
                 <ul id="contextual-dropdown" className="dropdown-content">
-                    <li><Link to="/deck"><i className="material-icons">view_list</i>My Decks</Link></li>
-                    <li><Link to="/settings"><i className="material-icons">settings</i>Settings</Link></li>
+                    <li><Link to="/deck"><i className="material-icons">view_list</i>My Decks (dropdown)</Link></li>
+                    <li><Link to="/settings"><i className="material-icons">settings</i>Settings (dropdown)</Link></li>
+                </ul>
+                <ul id="slide-out" className="side-nav">
+                    <li><Link to="/deck"><i className="material-icons">view_list</i>My Decks (sidenav)</Link></li>
+                    <li><Link to="/settings"><i className="material-icons">settings</i>Settings (sidenav)</Link></li>
                 </ul>
                 <div id="search-bar" className="row white-text grey darken-3" >
                     <div className="container">
                         <div className="input-field col s12">
-                            <input type="text" id="autocomplete-input" className="autocomplete" placeholder="search ..." />
+                            <input id="autocomplete-input-2" type="text" className="autocomplete" placeholder="search ..." />
                         </div>
                     </div>
                 </div>
@@ -338,7 +349,6 @@ var DeckEditorComponent = React.createClass({
         if (this.props.match.params.deckId) {
             DeckResource.getDeckById(this.props.match.params.deckId)
                 .then((data) => {
-                    console.log(data);
                     this.setState({ deckName: data.name, deckCards: data.cards.join("\n"), deckId: data.id });
                 });
         }
@@ -352,6 +362,8 @@ var DeckEditorComponent = React.createClass({
         this.setState({
             [target.name]: target.value
         });
+        Materialize.updateTextFields();
+        $("#input-deck-data").trigger("autoresize");// TODO: this does not seem to work
     },
     submitDeck: function(e) {
         e.preventDefault();
@@ -418,7 +430,7 @@ var DeckEditorComponent = React.createClass({
                                     <div className="row">
                                         <div className="input-field col s10">
                                             <input
-                                                id="input-deck-name"
+                                                id="input-deck-card"
                                                 type="text"
                                                 name="cardName"
                                                 value={this.state.cardName}
@@ -547,7 +559,7 @@ const CardInfoComponent = React.createClass({
         return (
             <div className="mtg-card-info">
                 <div className="row">
-                    <div className="col s4">
+                    <div id="preview" className="col s4">
                         {this.props.card.links &&
                             <a href={this.props.card.links.image} data-lightbox="deck-1" data-title={this.props.card.name}><img className="card-thumbnail side-a" src={this.props.card.links.image} /></a>
                         }
@@ -555,27 +567,45 @@ const CardInfoComponent = React.createClass({
                             <img className="card-thumbnail side-b" src={this.props.card.links.flip_image} />
                         }
                     </div>
-                    <div className="col s8">
-                        {this.props.card.type &&
-                            <div className="type">
-                                <p>{this.props.card.type}</p>
-                            </div>
-                        }
-                        {this.props.card.oracle &&
-                            <div className="oracle">
-                                {this.props.card.oracle.split("\n").map((txt,i) => {
-                                    return <p key={i}><Oracle text={txt} /></p>;
-                                })}
-                            </div>
-                        }
-                        {this.props.card.powerToughness &&
-                            <div className="powerToughness">
-                                <p>{this.props.card.powerToughness}</p>
-                            </div>
-                        }
-                        {this.props.card.links.hasOwnProperty('flip_name') &&
-                            <Link to={"/cards/"+this.props.card.links.flip_name}>{this.props.card.links.flip_name} <sup>flip</sup></Link>
-                        }
+                    <div id="oracle" className="col s8">
+                        <table>
+                            <tbody>
+                                {this.props.card.name &&
+                                    <tr>
+                                        <th>name:</th>
+                                        <td>{this.props.card.name}</td>
+                                    </tr>
+                                }
+                                {this.props.card.type &&
+                                    <tr>
+                                        <th>type:</th>
+                                        <td>{this.props.card.type}</td>
+                                    </tr>
+                                }
+                                {this.props.card.oracle &&
+                                    <tr>
+                                        <th>oracle:</th>
+                                        <td>{this.props.card.oracle.split("\n").map((txt,i) => {
+                                                return <span key={i}><Oracle text={txt} /></span>;
+                                        })}</td>
+                                    </tr>
+                                }
+                                {this.props.card.powerToughness &&
+                                    <tr>
+                                        <th>p/t:</th>
+                                        <td>{this.props.card.powerToughness}</td>
+                                    </tr>
+                                }
+                                {this.props.card.links.hasOwnProperty('flip_name') &&
+                                    <tr>
+                                        <th>other side:</th>
+                                        <td>
+                                            <Link to={{pathname: "/cards/"+this.props.card.links.flip_name}}>{this.props.card.links.flip_name}</Link>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
@@ -654,19 +684,13 @@ const DeckDetailComponent = React.createClass({
 
             const cardFilter = (
                 <div className="row">
-                    <form className="col s12">
-                        <div className="row">
-                            <div className="input-field col s6">
-                                <select>
-                                    <option value="type">Type</option>
-                                    <option value="color">Color</option>
-                                    <option value="rarity">Rarity</option>
-                                    <option value="cmc">Cmc</option>
-                                </select>
-                                <label>Sort by</label>
-                            </div>
-                        </div>
-                    </form>
+                    <label htmlFor="sortBy">Sort by</label>
+                    <select id="sortBy" className="browser-default">
+                        <option value="type">Type</option>
+                        <option value="color">Color</option>
+                        <option value="rarity">Rarity</option>
+                        <option value="cmc">Cmc</option>
+                    </select>
                 </div>
             );
 
@@ -734,6 +758,15 @@ const CardComponent = React.createClass({
                 this.setState({card: data})
             });
     },
+    componentWillReceiveProps: function(newProps) {
+        if (newProps.match.params.cardName != this.props.match.params.cardName) {
+            // TODO: handle gracefully componentDidMount && componentWillReceiveProps
+            CardResource.getCardByName(newProps.match.params.cardName)
+                .then(data => {
+                    this.setState({card: data})
+                });
+        }
+    },
     actionStash: function(evt) {
         StashResource.stashCard(this.state.card)
         return false;
@@ -763,9 +796,66 @@ const CardComponent = React.createClass({
     }
 });
 
+
+const CardSearchComponent = React.createClass({
+    getInitialState: function() {
+        return {cards: [], cardQuery: this.props.match.params.cardQuery};
+    },
+    componentDidMount: function() {
+        CardResource.searchCards(this.state.cardQuery)
+            .then(data => {
+                this.setState({cards: data})
+            });
+    },
+    handleChange: function(e) {
+        const target = e.target;
+        this.setState({
+            [target.name]: target.value
+        });
+    },
+    render: function() {
+        return (
+            <main>
+                <Navigation
+                    title="Search results"
+                    backUrl="/" />
+                <div className="container">
+                    <div className="card search-card">
+                        <div className="row">
+                            <div className="input-field col s11">
+                                <i className="material-icons prefix">search</i>
+                                <input
+                                    type="text"
+                                    id="autocomplete-input"
+                                    name="cardQuery"
+                                    className="autocomplete"
+                                    value={this.state.cardQuery}
+                                    onChange={this.handleChange} />
+                                <ul className="autocomplete-content dropdown-content"></ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    Results: {this.state.cards.length}
+
+                    {this.state.cards.map(function(card, i) {
+                        return (
+                            <div key={i} className="card">
+                                <div className="card-content">
+                                    <CardInfoComponent card={card} />
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            </main>
+        );
+    }
+});
+
 const MyDecksComponent = React.createClass({
     getInitialState: function() {
-        return {decks: null}
+        return {decks: []}
     },
     componentDidMount: function() {
         DeckResource.listDecks()
@@ -774,7 +864,7 @@ const MyDecksComponent = React.createClass({
         });
     },
     render: function() {
-        if (this.state.decks == null || this.state.decks.error != null || this.state.decks.length <= 0) {
+        if (this.state.decks.error != null) {
             return null;
         }
 
@@ -783,23 +873,13 @@ const MyDecksComponent = React.createClass({
             <main>
                 <Navigation
                     title="My decks"
-                    backUrl="/"
-                    menuItems={[
-                        {
-                            title: "My decks",
-                            link: "/decks"
-                        },
-                        {
-                            title: "Settings",
-                            link: "/settings"
-                        }
-                    ]} />
+                    backUrl="/" />
                 <div className="container">
                     <ul className="collection">
                         {this.state.decks.map((elt, i) => {
                             return (
                                 <li key={i} className="collection-item avatar">
-                                    <div style={{backgroundImage: "url('http://mtg.wtf/cards_hq/wwk/26.png')"}} alt="" className="circle" />
+                                    <div style={{backgroundImage: "url('"+elt.links.image+"')"}} alt="" className="circle" />
                                     <span className="title"><Link to={"/decks/"+elt.id}>{elt.displayName}</Link></span>
                                     <span className="secondary-content"><Manacost mc={"{w}{u}{b}{r}{g}"} /></span>
                                 </li>
@@ -821,28 +901,41 @@ const MyDecksComponent = React.createClass({
 const HomeComponent = React.createClass({
     render: function() {
         return (
-            <main>
+            <main className="splash akh desktop">
                 <Navigation
-                    title="Home"
+                    navbarColor="transparent"
                     menuItems={[
                         {
                             title: "My decks",
                             link: "/decks"
                         },
                         {
-                            title: "Settings",
-                            link: "/settings"
+                            link: "/menu",
+                            icon: "menu"
                         }
                     ]} />
                 <div className="container">
-                    <div className="card">
-                        <div className="card-content">
-                            <span className="card-title">Welcome</span>
-                            <h1>Hello brave wizard!</h1>
-                            <p>
-                            Welcome to the {Config.appName} app.
-                            Select a deck in your deck list or <Link to="/editor/decks" className="btn">create</Link> one.
-                            </p>
+                    <h1>Hello brave wizard!</h1>
+                    <p>
+                    Welcome to the {Config.appName} app.
+                    Select a deck in your deck list or <Link to="/editor/decks" className="">create</Link> one.
+                    </p>
+                    <div className="card search-card">
+                        <div className="row">
+                            <div className="input-field col s11">
+                                <i className="material-icons prefix">search</i>
+                                <input
+                                    type="text"
+                                    id="autocomplete-input"
+                                    className="autocomplete"
+                                    placeholder="search card ..."
+                                    onKeyPress={function(e) {
+                                        if (e.key === 'Enter' && e.target.value) {
+                                          this.props.history.push("/search/"+e.target.value);
+                                        }
+                                    }.bind(this)}/>
+                                <ul className="autocomplete-content dropdown-content"></ul>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -854,17 +947,19 @@ const HomeComponent = React.createClass({
 const MtgApp = React.createClass({
     componentDidMount: function() {
         document.title = Config.appName;
+        jqueryHandle();
     },
     render: function() {
         return (
             <Switch>
                   <Route exact path="/" component={HomeComponent} />
                   <Route exact path="/decks" component={MyDecksComponent} />
-                  <Route exact path="/decks/:deckId" component={DeckDetailComponent} />
+                  <Route path="/decks/:deckId" component={DeckDetailComponent} />
                   <Route exact path="/editor/decks" component={DeckEditorComponent} />
-                  <Route exact path="/editor/decks/:deckId" component={DeckEditorComponent} />
-                  <Route exact path="/delete/decks/:deckId" component={DeckDeleteComponent} />
-                  <Route exact path="/cards/:cardName" component={CardComponent} />
+                  <Route path="/editor/decks/:deckId" component={DeckEditorComponent} />
+                  <Route path="/delete/decks/:deckId" component={DeckDeleteComponent} />
+                  <Route path="/cards/:cardName" component={CardComponent} />
+                  <Route path="/search/:cardQuery" component={CardSearchComponent} />
             </Switch>
 		);
     }
@@ -877,33 +972,52 @@ ReactDOM.render(
   document.getElementById("app")
 );
 
+var jqueryInitialized = false;
+
 function jqueryHandle() {
-    console.log("initializing jquery");
-    // handle toggle of the search bar
-    var searchBar = $('div#search-bar'),
-        searchInput = searchBar.find('input');
-    $('a#toggle-search').click(function() {
-        searchBar.is(":visible") ? searchBar.slideUp() : searchBar.slideDown(function() {
-            searchInput.focus();
-        });
-        return false;
-    });
-    //searchInput.focusout(function() { searchBar.slideUp(); });
 
-    // handle auto-complete feature of the search bar
-    /*
-    $("#autocomplete-input").autocomplete({
-        data: autocompleteData,
-        limit: 20,
-        onAutocomplete: function(val) {
-        },
-        minLength: 3
-    });
-    */
+    var checkExists = setInterval(function() {
+        if (typeof $("#autocomplete-input").autocomplete === "function") {
+            console.log(typeof $("#autocomplete-input").autocomplete);
+            clearInterval(checkExists);
 
-    // Initialize dropdown items in menu
-    $("#contextual-dropdown").dropdown();
+            // Tabs
+            $('ul.tabs').tabs();
 
-    // Initialize select components
-    $("select").material_select();
+            // handle toggle of the search bar
+            var searchBar = $("div#search-bar"),
+                searchInput = searchBar.find("input");
+            $("a.toggle-search").click(function() {
+                searchBar.is(":visible") ? searchBar.slideUp() : searchBar.slideDown(function() {
+                    searchInput.focus();
+                });
+                return false;
+            });
+            //searchInput.focusout(function() { searchBar.slideUp(); });
+
+            // handle auto-complete feature of the search bar
+            $("#autocomplete-input").autocomplete({
+                data: {
+                    "Cancel": "http://mtg.wtf/cards/xln/47.png",
+                    "Crush of Tentacles": "http://mtg.wtf/cards_hq/ogw/53.png",
+                    "Rogue Elephant": "http://mtg.wtf/cards_hq/wl/81.png",
+                    "Westvale Abbey": "http://mtg.wtf/cards_hq/soi/281a.png"
+                },
+                limit: 20,
+                onAutocomplete: function(val) {
+                    console.log(val);
+                },
+                minLength: 3
+            });
+
+            // Initialize dropdown items in menu
+            $("#contextual-dropdown").dropdown();
+
+            // Initialize select components
+            $("select").material_select();
+
+            jqueryInitialized = true;
+            console.log("jquery initialized");
+        };
+    }, 100);
 }

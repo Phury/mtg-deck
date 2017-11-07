@@ -5,7 +5,7 @@ package be.phury.mtg.deck;
  *  * returning a list of elements making it shorter to display
  *  * returning a 201 created to link to the entity created
  */
-public class Entity {
+public class Entity extends ApiModel {
     private String id;
     private String displayName;
     private String type;

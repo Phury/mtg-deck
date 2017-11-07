@@ -1,7 +1,9 @@
 package be.phury.mtg.deck.controller;
 
 import be.phury.mtg.deck.ApiController;
+import be.phury.mtg.deck.Card;
 import be.phury.mtg.deck.DeckEditRequest;
+import be.phury.mtg.deck.provider.CardProvider;
 import be.phury.mtg.deck.provider.DeckProvider;
 import be.phury.mtg.deck.Entity;
 import org.slf4j.Logger;
@@ -28,6 +30,9 @@ public class DeckController {
 
     @Autowired
     private DeckProvider deckProvider;
+
+    @Autowired
+    private CardProvider cardProvider;
 
     @RequestMapping(path = "/users/{userId}/decks/")
     public List<Entity> getDecksByUser(@PathVariable String userId) {
@@ -78,11 +83,22 @@ public class DeckController {
     }
 
     private Entity toInfo(final DeckEditRequest d) {
+        final String uri = MessageFormat.format("{0}/decks/{1}", ApiController.API_ROOT, d.getId());
+        final Card firstCard = getFirstCard(d);
         return new Entity() {{
             setId(d.getId());
             setType("deck");
             setDisplayName(d.getName());
-            setUri(MessageFormat.format("{0}/decks/{1}", ApiController.API_ROOT, d.getId()));
+            setUri(uri);
+            addLink("self", uri);
+            addLink("image", firstCard.getLinks().get("image"));
         }};
+    }
+
+    private Card getFirstCard(DeckEditRequest d) {
+        final String cardInfo = d.getCards().get(0);
+        final Integer space = cardInfo.indexOf(" ");
+        final String cardName = cardInfo.substring(space+1, cardInfo.length());
+        return cardProvider.getCardByName(cardName);
     }
 }

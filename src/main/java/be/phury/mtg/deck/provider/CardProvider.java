@@ -21,6 +21,15 @@ import java.util.stream.Collectors;
  */
 @Service
 public class CardProvider {
+
+    public List<Card> searchCards(String query) {
+        return fetchDom(query)
+                .select("div.card_row")
+                .stream()
+                .map(ElementToCardConverter::toCard)
+                .collect(Collectors.toList());
+    }
+
     public List<Card> findCardsByType(String cardType) {
         return fetchDom("t:" + cardType)
                 .select("div.card_row")
@@ -30,7 +39,7 @@ public class CardProvider {
     }
 
     public Card getCardByName(String cardName) {
-        String cardNameSanitized = (cardName.contains("+")) ? StringUtils.split(cardName, "+")[0] : cardName;
+        String cardNameSanitized = "!"+ ((cardName.contains("+")) ? StringUtils.split(cardName, "+")[0] : cardName);
         return fetchDom(cardNameSanitized)
                 .select("div.card_row")
                 .stream()
@@ -41,7 +50,7 @@ public class CardProvider {
 
     private Document fetchDom(String query) {
         try {
-            Document doc = Jsoup.connect("http://mtg.wtf/card?q=!" + urlEncode(query)).get();
+            Document doc = Jsoup.connect("http://mtg.wtf/card?q=" + urlEncode(query)).get();
             if (doc.select("div.results_summary").text().equals("No cards found")) {
                 throw new ElementNotFoundException("Card {0} not found", query);
             }
