@@ -1,6 +1,7 @@
 package be.phury.mtg.deck.model;
 
 import be.phury.mtg.deck.ApiModel;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
@@ -9,6 +10,7 @@ import java.util.List;
 /**
  * Created by Phury
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class DeckEditRequest extends ApiModel {
     private String id;
     private String name;

@@ -50,6 +50,8 @@ Test the app : [https://manascrewd.herokuapp.com](https://manascrewd.herokuapp.c
 ## v0.10
 - [x] Stash API
 - [x] Fix bug in deck creation where the deck could not be created
+- [x] Minor UI improvements
+- [x] Fix bug introduced in stash API where no decks are returned
 
 ## v0.09
 - [x] Splash page
