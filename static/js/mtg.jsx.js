@@ -191,17 +191,9 @@ const Navigation = React.createClass({
                         {this.props.contextMenuItems &&
                             <li><a className="dropdown-button" href="#!" data-activates="contextual-dropdown"><i className="material-icons">more_vert</i></a></li>
                         }
-                        <li><a href="#" className="toggle-search"><i className="material-icons">search</i></a></li>
+                        <li><a href="#" className="toggle-search"><i className="material-icons left">search</i>Search</a></li>
                     </ul>
                 </div>
-                <ul id="contextual-dropdown" className="dropdown-content">
-                    <li><Link to="/deck"><i className="material-icons">view_list</i>Grimoire (dropdown)</Link></li>
-                    <li><Link to="/settings"><i className="material-icons">settings</i>Settings (dropdown)</Link></li>
-                </ul>
-                <ul id="slide-out" className="side-nav">
-                    <li><Link to="/deck"><i className="material-icons">view_list</i>Grimoire (sidenav)</Link></li>
-                    <li><Link to="/settings"><i className="material-icons">settings</i>Settings (sidenav)</Link></li>
-                </ul>
                 <div id="search-bar" className="row white-text grey darken-3" >
                     <div className="container">
                         <div className="input-field col s12">
@@ -209,6 +201,14 @@ const Navigation = React.createClass({
                         </div>
                     </div>
                 </div>
+                <ul id="contextual-dropdown" className="dropdown-content">
+                    <li><a href="#!">one</a></li>
+                    <li><a href="#!">two</a></li>
+                    <li className="divider"></li>
+                    <li><a href="#!">three</a></li>
+                    <li><a href="#!"><i className="material-icons">view_module</i>four</a></li>
+                    <li><a href="#!"><i className="material-icons">cloud</i>five</a></li>
+                </ul>
             </nav>
         );
     }
@@ -608,14 +608,14 @@ const CardTile = React.createClass({
 
 const DeckDetailComponent = React.createClass({
     getInitialState: function() {
-        return { deck: null, viewMode: "list", cardFilter: "type" };
+        return { deck: null, viewMode: "list", cardFilter: "type", backgroundImage: "" };
     },
     componentDidMount: function() {
         DeckResource.getDeckById(this.props.match.params.deckId)
             .then((deck) => {
                 CardResource.getCardsInDeck(deck, (cards) => {
                     console.log(cards);
-                    this.setState({ deck: deck, cards: cards  });
+                    this.setState({ deck: deck, cards: cards, backgroundImage: cards[0].links.image  });
                     $(".collapsible").collapsible();
                 });
             });
@@ -652,7 +652,7 @@ const DeckDetailComponent = React.createClass({
                     <header>
                         <nav className="nav-extended">
                             <div className="nav-bg"
-                                style={{backgroundImage: "url('//cdn1.mtggoldfish.com/images/gf/Satyr%2BWayfinder%2B%255BM15%255D.jpg')"}}>
+                                style={{backgroundImage: "url('"+this.state.backgroundImage+"')"}}>
                             </div>
                             <div className="nav-wrapper">
                                 <ul className="left">
@@ -705,7 +705,6 @@ const DeckDetailComponent = React.createClass({
                                 })}
                             </ul>
                             total cards: {totalCards}
-
                         </div>
                     </main>
                 </div>
