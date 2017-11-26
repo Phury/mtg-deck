@@ -4,6 +4,10 @@ body {
     background-color: #f7f7f7;
 }
 
+main {
+    background-color: #f7f7f7;
+}
+
 .sr-only {
     position: absolute;
     width: 1px;
@@ -38,14 +42,18 @@ body {
 nav .brand-logo {
     font-size: 1.4rem;
 }
-nav .nav-wrapper .transparent {
+nav.transparent {
     background-color: transparent;
+    box-shadow: none;
+}
+nav.transparent .brand-logo, nav.transparent ul a {
+    color: #333;
 }
 
 .avatar div.circle,.collection .collection-item.avatar:not(.circle-clipper)>.circle {
     background-size: 150%;
     background-position: 15% 20%;
-    border-radius: 0;
+    border-radius: 5px;
     width: 65px;
     height: 65px;
 }
@@ -148,9 +156,49 @@ div.card.search-card input[type=text]:not(.browser-default) {
 }
 
 /*
- * oracle
+ * Nav with background image
  */
-#oracle table tbody tr th {
-    text-align: right;
-    font-style: italic;
+nav.nav-extended {
+  height: auto;
+  background-color: transparent;
+  background-color: rgba(156, 39, 176, 0.3);
+}
+
+nav .nav-bg {
+  overflow: hidden;
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  bottom: 0;
+  z-index: -1;
+
+  background-size: 120%;
+  background-position: center 20%;
+  background-repeat: no-repeat;
+  opacity: 0.6;
+
+  image-rendering: pixelated;
+  /* see: https://builtvisible.com/image-scaling-in-css/ */
+}
+
+nav .nav-header {
+  word-wrap: break-word;
+  clear: both;
+  padding: 40px;
+}
+
+.nav-action {
+  position: relative;
+}
+
+.nav-action .fixed-action-btn {
+  position: absolute;
+  /*top: -30px;*/
+  display: inline-block;
+  right: 24px;
+}
+
+.pushpin-target.pinned {
+  z-index: 1;
 }

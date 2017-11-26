@@ -1,8 +1,10 @@
 package be.phury.mtg.deck.model;
 
 import be.phury.mtg.deck.ApiModel;
+import be.phury.mtg.deck.utils.Colors;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * Created by Phury
@@ -79,5 +81,9 @@ public class Card extends ApiModel {
 
     public void setEditions(List<String> editions) {
         this.editions = editions;
+    }
+
+    public Set<String> getColors() {
+        return Colors.parse(getManaCost());
     }
 }

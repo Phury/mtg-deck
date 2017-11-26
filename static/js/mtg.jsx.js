@@ -150,7 +150,7 @@ const StashResource = {
 
 const Navigation = React.createClass({
     getDefaultProps() {
-        return { navbarColor: "blue" };
+        return { navbarColor: "purple" };
     },
     render: function() {
         return (
@@ -236,7 +236,7 @@ const FabComponent = React.createClass({
                 );
             });
             return (
-                <div className="fixed-action-btn">
+                <div className="fixed-action-btn horizontal">
                     <a className="btn-floating btn-large amber">
                       <i className="large material-icons">add</i>
                     </a>
@@ -563,7 +563,7 @@ const CardInfoComponent = React.createClass({
                     </div>
                     <div id="oracle" className="col s8">
                         {this.props.card.name &&
-                            <h3><Link to={"/cards/"+this.props.card.name}>{this.props.card.name}</Link><sup><Manacost mc={this.props.card.manaCost} /></sup></h3>
+                            <h3><Link to={"/cards/"+this.props.card.name}>{this.props.card.name}</Link>{'\u00A0'}<sup><Manacost mc={this.props.card.manaCost} /></sup></h3>
                         }
                         {this.props.card.type &&
                             <b>{this.props.card.type}</b>
@@ -633,88 +633,82 @@ const DeckDetailComponent = React.createClass({
         this.setState({ filter: evt.target.value });
         // TODO: put cards in map with filter as key and render
     },
+    handleOrderChange: function(e, order) {
+        e.preventDefault();
+        console.log(order);
+    },
     render: function() {
         if (this.state.deck == null) return null;
 
         if (this.state.viewMode === "module") {
-            return (
-                <div className="container">
-                    <div className="row">
-                        <div className="col s12">
-                            <CardTile />
-                            <CardTile />
-                            <CardTile />
-                            <CardTile />
-                        </div>
-                    </div>
-                </div>
-            );
+            return null;
         } else {
             var totalCards = 0;
             // <a href="#" onClick={this.handleViewList} className="waves-effect waves-light"><i className="material-icons">view_list</i></a>
             // <a href="#" onClick={this.handleViewModule} className="waves-effect waves-light"><i className="material-icons">view_module</i></a>
 
-            const cardFilter = (
-                <div className="row">
-                    <label htmlFor="sortBy">Sort by</label>
-                    <select id="sortBy" className="browser-default">
-                        <option value="type">Type</option>
-                        <option value="color">Color</option>
-                        <option value="rarity">Rarity</option>
-                        <option value="cmc">Cmc</option>
-                    </select>
-                </div>
-            );
-
             return (
-                <main>
-                    <Navigation
-                        title={this.state.deck.name}
-                        backUrl="/decks"
-                        menuItems={[
-                            {
-                                link: this.handleViewModule,
-                                icon: "view_module"
-                            },
-                            {
-                                title: "Grimoire",
-                                link: "/decks"
-                            },
-                            {
-                                title: "Settings",
-                                link: "/settings"
-                            }
-                        ]} />
-                    <div className="container">
-                        {cardFilter}
-                        <ul className="collapsible" data-collapsible="expandable">
-                            {this.state.cards.map((card, i) => {
-                                totalCards+=card.amount;
-                                return (
-                                    <li key={i}>
-                                        <div className="collapsible-header">{card.amount}{'\u00A0'}<a>{card.name}</a> <Manacost mc={card.manaCost} /></div>
-                                        <div className="collapsible-body"><CardInfoComponent card={card}/></div>
-                                    </li>
-                                );
-                            })}
-                        </ul>
-                        total cards: {totalCards}
+                <div>
+                    <header>
+                        <nav className="nav-extended">
+                            <div className="nav-bg"
+                                style={{backgroundImage: "url('//cdn1.mtggoldfish.com/images/gf/Satyr%2BWayfinder%2B%255BM15%255D.jpg')"}}>
+                            </div>
+                            <div className="nav-wrapper">
+                                <ul className="left">
+                                    <li><Link to={"/decks"}><i className="material-icons">arrow_back</i></Link></li>
+                                </ul>
+                                <ul className="right">
+                                    <li><a href="#"><i className="material-icons left">search</i>search</a></li>
+                                </ul>
+                            </div>
+                            <div className="nav-header">
+                                <h1>{this.state.deck.name}</h1>
+                            </div>
+                        </nav>
+                    </header>
+                    <div className="nav-action">
                         <FabComponent
                             menuItems={[
                             {
                                 link: "/delete/decks/"+this.state.deck.id,
                                 icon: "delete",
-                                name: "delete",
                                 color: "red"
                             },
                             {
                                 link: "/editor/decks/"+this.state.deck.id,
                                 icon: "edit",
-                                name: "edit",
                                 color: "blue"
                             }]} />
                     </div>
-                </main>
+                    <main>
+                        <nav className="pushpin-target purple">
+                            <div className="nav-wrapper">
+                                <ul className="">
+                                    <li>{'\u00A0'}Order by:{'\u00A0'}{'\u00A0'}</li>
+                                    <li className="active"><a href="#" onClick={(e) => this.handleOrderChange(e, 'type')}>Type</a></li>
+                                    <li><a href="#" onClick={(e) => this.handleOrderChange(e, 'color')}>Color</a></li>
+                                    <li><a href="#" onClick={(e) => this.handleOrderChange(e, 'cmc')}>Cmc</a></li>
+                                </ul>
+                            </div>
+                        </nav>
+                        <div className="container">
+                            <ul className="collapsible" data-collapsible="expandable">
+                                {this.state.cards.map((card, i) => {
+                                    totalCards+=card.amount;
+                                    return (
+                                        <li key={i}>
+                                            <div className="collapsible-header">{card.amount}{'\u00A0'}<a>{card.name}</a> <Manacost mc={card.manaCost} /></div>
+                                            <div className="collapsible-body"><CardInfoComponent card={card}/></div>
+                                        </li>
+                                    );
+                                })}
+                            </ul>
+                            total cards: {totalCards}
+
+                        </div>
+                    </main>
+                </div>
             );
         }
     }
@@ -874,27 +868,19 @@ const MyDecksComponent = React.createClass({
 const HomeComponent = React.createClass({
     render: function() {
         return (
-            <main className="splash akh desktop">
-                <Navigation
-                    navbarColor="transparent"
-                    menuItems={[
-                        {
-                            title: "Grimoire",
-                            link: "/decks"
-                        },
-                        {
-                            link: "/menu",
-                            icon: "menu"
-                        }
-                    ]} />
+            <main className="splash">
+                <nav className="transparent">
+                    <div className="nav-wrapper">
+                        <ul className="left">
+                            <li><a href="#"><i className="material-icons left">menu</i></a></li>
+                        </ul>
+                        <a href="#" className="brand-logo center">{Config.appName}</a>
+                        <ul className="right">
+                            <li><Link to={"/decks"}>My decks</Link></li>
+                        </ul>
+                    </div>
+                </nav>
                 <div className="container">
-                    <h1>Hello brave wizard!</h1>
-                    <br/>
-                    <p>
-                    Welcome to <span className="app-name">{Config.appName}</span>.
-                    <br/>
-                    Select a deck in your <Link to="/decks" className=""> grimoire</Link> or <Link to="/editor/decks" className="">create</Link> one.
-                    </p>
                     <div className="card search-card">
                         <div className="row">
                             <div className="input-field col s11">
