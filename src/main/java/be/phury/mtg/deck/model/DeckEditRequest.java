@@ -15,6 +15,7 @@ public class DeckEditRequest extends ApiModel {
     private String id;
     private String name;
     private String submittedBy;
+    private String colors;
     private List<String> cards;
 
     public String getId() {
@@ -39,6 +40,14 @@ public class DeckEditRequest extends ApiModel {
 
     public void setSubmittedBy(String submittedBy) {
         this.submittedBy = submittedBy;
+    }
+
+    public String getColors() {
+        return colors;
+    }
+
+    public void setColors(String colors) {
+        this.colors = colors;
     }
 
     public List<String> getCards() {

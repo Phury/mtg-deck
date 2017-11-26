@@ -106,30 +106,22 @@ const CardResource = {
                 }
             });
     },
-    getCardsInDeck: function(deck) {
-        return new Promise((resolve, reject) => {
-            const promises = [];
-            deck.cards.map((elt, i) => {
-                const space = elt.indexOf(" ");
-                const numberOfCards = parseInt(elt.substring(0, space)) || 1;
-                const cardName = elt.substring(space+1, elt.length);
-                promises.push(
-                    CardResource.getCardByName(cardName)
-                        .then(data => {
-                            data.amount = numberOfCards;
-                            return data;
-                        })
-                        .catch(error => {
-                            console.log(error+": could not retrieve card "+cardName);
-                            return {amount: numberOfCards, name: cardName, manaCost: "", convertedManaCost: 0, links: {}};// TODO: Handle null fields in CardInfoComponent to be more robust
-                        })
-                );
-            });
-            Promise.all(promises).then(cards => {
-                resolve(cards);
-            }, error => {
-                reject(error+": could not retrieve cards in deck "+deck.name);
-            });
+    getCardsInDeck: function(deck, callback) {
+        const cards = [];
+        deck.cards.map((elt, i) => {
+            const space = elt.indexOf(" ");
+            const numberOfCards = parseInt(elt.substring(0, space)) || 1;
+            const cardName = elt.substring(space+1, elt.length);
+            CardResource.getCardByName(cardName)
+                .then(card => {
+                    card.amount = numberOfCards;
+                    cards.push(card);
+                    callback(cards);
+                })
+                .catch(error => {
+                    console.log(error+": could not retrieve card "+cardName);
+                    return {amount: numberOfCards, name: cardName, manaCost: "", convertedManaCost: 0, links: {}};// TODO: Handle null fields in CardInfoComponent to be more robust
+                })
         });
     },
     searchCards: function(query) {
@@ -620,13 +612,12 @@ const DeckDetailComponent = React.createClass({
     },
     componentDidMount: function() {
         DeckResource.getDeckById(this.props.match.params.deckId)
-            .then((data1) => {
-                CardResource.getCardsInDeck(data1)
-                    .then((data2) => {
-                        console.log(data2);
-                        this.setState({ deck: data1, cards: data2  });
-                        $(".collapsible").collapsible();
-                    });
+            .then((deck) => {
+                CardResource.getCardsInDeck(deck, (cards) => {
+                    console.log(cards);
+                    this.setState({ deck: deck, cards: cards  });
+                    $(".collapsible").collapsible();
+                });
             });
     },
     handleViewList: function(e) {
@@ -840,8 +831,9 @@ const MyDecksComponent = React.createClass({
     },
     componentDidMount: function() {
         DeckResource.listDecks()
-        .then((data) => {
-            this.setState({decks: data});
+        .then((decks) => {
+            console.log(decks);
+            this.setState({decks: decks});
         });
     },
     render: function() {
@@ -862,7 +854,7 @@ const MyDecksComponent = React.createClass({
                                 <li key={i} className="collection-item avatar">
                                     <div style={{backgroundImage: "url('"+elt.links.image+"')"}} alt="" className="circle" />
                                     <span className="title"><Link to={"/decks/"+elt.id}>{elt.displayName}</Link></span>
-                                    <span className="secondary-content"><Manacost mc={"{w}{u}{b}{r}{g}"} /></span>
+                                    <span className="secondary-content"><Manacost mc={elt.colors} /></span>
                                 </li>
                             );
                         })}

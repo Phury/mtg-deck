@@ -83,15 +83,29 @@ public class DeckController {
     }
 
     private Entity createEntity(final DeckEditRequest request) {
+
+        final class CardEntity extends Entity {
+            private String colors;
+
+            public String getColors() {
+                return colors;
+            }
+
+            public void setColors(String colors) {
+                this.colors = colors;
+            }
+        }
+
         final String uri = MessageFormat.format("{0}/decks/{1}", ApiController.API_ROOT, request.getId());
         final Card firstCard = getFirstCard(request);
-        return new Entity() {{
-            setId(request.getId());
-            setType("deck");
-            setDisplayName(request.getName());
-            addLink("self", uri);
-            addLink("image", firstCard.getLinks().get("image"));
-        }};
+        final CardEntity cardEntity = new CardEntity();
+        cardEntity.setId(request.getId());
+        cardEntity.setType("deck");
+        cardEntity.setColors(request.getColors());
+        cardEntity.setDisplayName(request.getName());
+        cardEntity.addLink("self", uri);
+        cardEntity.addLink("image", firstCard.getLinks().get("image"));
+        return cardEntity;
     }
 
     private Card getFirstCard(DeckEditRequest request) {
