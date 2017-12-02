@@ -49,7 +49,11 @@ nav.transparent {
 nav.transparent .brand-logo, nav.transparent ul a {
     color: #333;
 }
-
+.splash nav.transparent .brand-logo {
+    font-size: 2rem;
+    color: #9c27b0;
+    font-weight: bold;
+}
 .avatar div.circle,.collection .collection-item.avatar:not(.circle-clipper)>.circle {
     background-size: 150%;
     background-position: 15% 20%;
@@ -101,53 +105,6 @@ sup .mc i {
 	border-radius: 2px;
 	color: #FFF;
 	width:auto;
-}
-
-/*
- * Splash page
- */
-.akh.mobile {
-    background-image: url('//magic.wizards.com/sites/mtg/files/images/wallpaper/Approach-of-the-Second-Sun_AKH_iPhone_Wallpaper.jpg');
-}
-.akh.desktop {
-    background-image: url('//magic.wizards.com/sites/mtg/files/images/wallpaper/Approach-of-the-Second-Sun_AKH_1920x1080_Wallpaper.jpg');
-}
-.splash {
-    background-size: cover;
-    background-position: center center;
-    background-repeat: no-repeat;
-    height: 100vh;
-}
-.splash h1, .splash p {
-    font-family: 'Average', serif;
-    background-color: #222;
-    color: #eee;
-    display: inline-block;
-    padding: 0.1em 0.3em 0.1em 0.3em;
-}
-
-.splash h1 {
-    font-size: 2.4em;
-}
-
-.splash p {
-    font-size: 1.4em;
-}
-
-
-/*
- * Search card
- */
-div.card.search-card .input-field {
-    margin-top: 5px;
-}
-div.card.search-card .input-field .prefix {
-    top: 7px;
-}
-div.card.search-card input[type=text]:not(.browser-default) {
-    margin-bottom: 10px;
-    border: none;
-    box-shadow: none;
 }
 
 /*

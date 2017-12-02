@@ -861,7 +861,7 @@ const MyDecksComponent = React.createClass({
 const HomeComponent = React.createClass({
     render: function() {
         return (
-            <div>
+            <div className="splash">
                 <header>
                     <nav className="transparent">
                         <div className="nav-wrapper">
@@ -875,7 +875,7 @@ const HomeComponent = React.createClass({
                         </div>
                     </nav>
                 </header>
-                <main className="splash">
+                <main>
                     <div className="container">
                         <div id="search-bar" className="row search-bar" >
                             <div className="input-field col s12">
