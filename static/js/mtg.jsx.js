@@ -30,7 +30,7 @@ const cloneObj = (obj) => {
     return JSON.parse(JSON.stringify(obj))
 }
 
-const origin = "/";
+const searchHistory = {};
 
 PouchDB.debug.enable('*');
 
@@ -367,6 +367,9 @@ const Oracle = React.createClass({
 });
 
 const ModalSearchComponent = React.createClass({
+    componentDidMount: function() {
+
+    },
     render: function() {
         return (
             <div id="search-box" className="modal modal-search">
@@ -378,8 +381,9 @@ const ModalSearchComponent = React.createClass({
                         type="search"
                         onKeyPress={(e) => {
                             if (e.key === "Enter" && e.target.value) {
-                                $("#search-box").modal("close");
+                                searchHistory[e.target.value] = null;
                                 this.props.history.push("/search/"+e.target.value);
+                                $("#search-box").modal("close");
                             }
                         }.bind(this)} />
                 </div>
@@ -411,7 +415,6 @@ const DeckEditorComponent = React.createClass({
             [target.name]: target.value
         });
         Materialize.updateTextFields();
-        $("#input-deck-data").trigger("autoresize");// TODO: this does not seem to work
     },
     submitDeck: function(e) {
         e.preventDefault();
@@ -748,7 +751,7 @@ const CardComponent = React.createClass({
             <div>
                 <Navigation
                     title={this.state.card.name}
-                    backUrl={this.props.origin} />
+                    backUrl="/" />
                 <main>
                     <div className="container">
                         <div className="card">
@@ -774,13 +777,6 @@ const CardSearchComponent = React.createClass({
             .then(data => {
                 this.setState({cards: data})
             });
-    },
-    handleChange: function(e) {
-        // only update value on change, search triggered by 'Enter'
-        this.setState({value: e.target.value});
-    },
-    handleSearch: function(e) {
-        this.setState({ cardQuery: e.target.value });
     },
     render: function() {
         return (
@@ -834,7 +830,6 @@ const MyDecksComponent = React.createClass({
                     <div className="container">
                         <ul className="collection">
                             {this.state.decks.map((elt, i) => {
-                                console.log(elt);
                                 return (
                                     <li key={i} className="collection-item avatar">
                                         <div style={{backgroundImage: "url('"+elt.links.image+"')"}} alt="" className="circle" />
@@ -932,16 +927,16 @@ function jqueryHandle() {
         if (typeof $("#autocomplete-input").autocomplete === "function") {
             clearInterval(checkExists);
 
-            // Dropdown items
+            // dropdown items
             $("#contextual-dropdown").dropdown();
 
-            // Select components
+            // select components
             $("select").material_select();
 
-            // Tabs
+            // tabs
             $('ul.tabs').tabs();
 
-            // Modals
+            // modals
             const searchBox = $("#search-box");
             searchBox.modal();
 
@@ -957,19 +952,16 @@ function jqueryHandle() {
                 searchBox.modal("open");
             });
 
-            // handle auto-complete feature of the search bar
+            // handle auto-complete feature of the search-box
             $("#autocomplete-input").autocomplete({
-                data: {
-                    "Cancel": "http://mtg.wtf/cards/xln/47.png",
-                    "Crush of Tentacles": "http://mtg.wtf/cards_hq/ogw/53.png",
-                    "Rogue Elephant": "http://mtg.wtf/cards_hq/wl/81.png",
-                    "Westvale Abbey": "http://mtg.wtf/cards_hq/soi/281a.png"
-                },
+                data: searchHistory,
                 limit: 20,
                 onAutocomplete: function(val) {
+                    // TODO: call history.push from react router somehow
                     console.log(val);
+                    //this.props.history.push("/search/"+val);
                 },
-                minLength: 3
+                minLength: 0
             });
 
             jqueryInitialized = true;
