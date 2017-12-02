@@ -445,66 +445,78 @@ const DeckEditorComponent = React.createClass({
     },
     render: function() {
         return (
-            <main>
+            <div>
                 <Navigation
                     title={this.props.match.params.deckId ? "Edit your deck" : "Create a new deck"}
                     backUrl={this.props.match.params.deckId ? "/decks/"+this.props.match.params.deckId : "/decks"} />
-                <div className="container">
-                    <div className="card">
-                        <div className="card-content">
-                            <div className="row">
-                                <form onSubmit={this.submitDeck} method="post">
-                                    { this.state.deckId &&
-                                        <input type="hidden" name="deckId" value={this.state.deckId} />
-                                    }
-                                    <div className="row">
-                                        <div className="input-field col s12">
-                                            <input
-                                                id="input-deck-name"
-                                                type="text"
-                                                name="deckName"
-                                                value={this.state.deckName}
-                                                onChange={this.handleChange} />
-                                            <label htmlFor="input-deck-name">Name your deck</label>
+                <main>
+                    <div className="container">
+                        <div className="card">
+                            <div className="card-content">
+                                <div className="row">
+                                    <form onSubmit={this.submitDeck} method="post">
+                                        { this.state.deckId &&
+                                            <input type="hidden" name="deckId" value={this.state.deckId} />
+                                        }
+                                        <div className="row">
+                                            <div className="input-field col s12">
+                                                <input
+                                                    id="input-deck-name"
+                                                    type="text"
+                                                    name="deckName"
+                                                    value={this.state.deckName}
+                                                    onChange={this.handleChange} />
+                                                <label htmlFor="input-deck-name">Deck name</label>
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div className="row">
-                                        <div className="input-field col s10">
-                                            <input
-                                                id="input-deck-card"
-                                                type="text"
-                                                name="cardName"
-                                                value={this.state.cardName}
-                                                onChange={this.handleChange} />
-                                            <label htmlFor="input-card-name">Card search</label>
+                                        <div className="row">
+                                            <div className="input-field col s12">
+                                                <textarea
+                                                    id="input-deck-data"
+                                                    name="deckCards"
+                                                    value={this.state.deckCards}
+                                                    onChange={this.handleChange}
+                                                    className="materialize-textarea" />
+                                                <label htmlFor="input-deck-data">Cards</label>
+                                            </div>
                                         </div>
-                                        <div className="input-field col s2">
-                                            <button className="btn waves-effect waves-light">Add</button>
+                                        <div className="row">
+                                            <div className="input-field col s12">
+                                                <input
+                                                    id="input-deck-card"
+                                                    type="text"
+                                                    name="cardName"
+                                                    value={this.state.cardName}
+                                                    onChange={this.handleChange} />
+                                                <label htmlFor="input-card-name">Card search</label>
+                                            </div>
+                                            <div className="input-field col s6">
+                                                <input placeholder="1" id="quantity" type="number" />
+                                                <label htmlFor="quantity">Quantity</label>
+                                            </div>
+                                            <div className="input-field col s6">
+                                                <button className="btn btn-wide">Add Card</button>
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div className="row">
-                                        <div className="input-field col s12">
-                                            <textarea
-                                                id="input-deck-data"
-                                                name="deckCards"
-                                                value={this.state.deckCards}
-                                                onChange={this.handleChange}
-                                                className="materialize-textarea" />
-                                            <label htmlFor="input-deck-data">Mainboard</label>
+                                        <div className="row">
+                                            <div className="input-field col s12">
+                                                <button id="preview" className="btn waves-effect waves-light grey lighten-1">Preview</button>
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div className="row">
-                                        <div className="input-field col s12">
-                                            <input type="submit" className="btn waves-effect waves-light"
-                                                value={this.state.deckId ? "Update deck" : "Create deck"} />
+                                        <div className="row">
+                                            <div className="input-field col s12">
+                                                <input type="submit" className="btn waves-effect waves-light"
+                                                    value={this.state.deckId ? "Update deck" : "Create deck"} />
+                                            </div>
                                         </div>
-                                    </div>
-                                </form>
+                                    </form>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            </main>
+                </main>
+                <ModalSearchComponent history={this.props.history} />
+            </div>
         );
     }
 });
@@ -960,6 +972,7 @@ function jqueryHandle() {
             $(".search-box-trigger").on('click', (e) => {
                 e.preventDefault();
                 searchBox.modal("open");
+                searchBox.find("#autocomplete-input").focus();
             });
 
             // handle auto-complete feature of the search-box

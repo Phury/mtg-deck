@@ -17,25 +17,23 @@ Test the app : [https://manascrewd.herokuapp.com](https://manascrewd.herokuapp.c
 - [x] Implement search
 - [x] Slideshow when click on image
 - [ ] Animations on components
-- [ ] Consistent menus
-- [ ] Mobile/Desktop view with sidmenu  
+- [x] Consistent menus
 - [ ] Implement card ordering in deck
 - [ ] Validate cards at deck creation
 - [ ] Deck stats
 - [ ] Deck CMC
-- [ ] Deck colors
+- [x] Deck colors
 - [ ] Do not allow empty deck names at creation
 - [ ] Update deck model to reference cards and not strings
-- [ ] Create a welcome page (example: [https://magicthegathering.io/](magicthegathering.io))
+- [x] Create a welcome page (example: [https://magicthegathering.io/](magicthegathering.io))
 - [ ] Application shell
 - [x] Stash API
 - [ ] Swagger
 - [ ] Add card to collection
 - [ ] PWA
 - [ ] Handle dual sided cards
-- [ ] Custom theme (Oketra, Hazoret, Rhonas, Kefnet, Bontu)
 - [ ] Add card to deck
-- [ ] Mozaic background for deck view
+- [x] background for deck view
 - [ ] Filter returned fields in API with ?fields=a,b,c
 - [ ] Search API (by name, by type, by mana cost, by color)
 - [ ] User API
@@ -46,6 +44,17 @@ Test the app : [https://manascrewd.herokuapp.com](https://manascrewd.herokuapp.c
 - [ ] i18n
 
 # Release notes
+
+## v0.11
+- [x] Consistent menus
+- [x] Deck colors
+- [x] Background for deck view
+- [x] Code cleanup
+- [x] Modal search box
+- [x] Welcome page
+- [x] Query caching
+- [x] Manifest
+- [x] Icons
 
 ## v0.10
 - [x] Stash API
