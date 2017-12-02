@@ -861,11 +861,18 @@ const HomeComponent = React.createClass({
                     <nav className="transparent">
                         <div className="nav-wrapper">
                             <ul className="left">
-                                <li><a href="#"><i className="material-icons left">menu</i></a></li>
+                                <li>
+                                    <a href="#" data-activates="slide-out" className="button-collapse show-on-large">
+                                        <i className="material-icons left">menu</i>
+                                    </a>
+                                </li>
                             </ul>
                             <a href="#" className="brand-logo center">{Config.appName}</a>
                             <ul className="right">
                                 <li><Link to={"/decks"}>My decks</Link></li>
+                            </ul>
+                            <ul className="side-nav" id="slide-out">
+                                <li><a href="https://github.com/Phury/mtg-deck" target="_blank">About</a></li>
                             </ul>
                         </div>
                     </nav>
@@ -926,6 +933,9 @@ function jqueryHandle() {
     const checkExists = setInterval(() => {
         if (typeof $("#autocomplete-input").autocomplete === "function") {
             clearInterval(checkExists);
+
+            // side navigation
+            $(".button-collapse").sideNav();
 
             // dropdown items
             $("#contextual-dropdown").dropdown();
