@@ -30,8 +30,23 @@ const cloneObj = (obj) => {
     return JSON.parse(JSON.stringify(obj))
 }
 
+const origin = "/";
+
+PouchDB.debug.enable('*');
+
+const memoize = function(func, param, cache) {
+    return cache.get(param).catch((err) => {
+        return func(param).then((json) => {
+            json._id = param;
+            cache.put(json);
+            return new Promise((resolve, reject) => { resolve(json); });
+        });
+    });
+}
+
 const DeckResource = {
-    getDeckById: function(deckId) {
+    _cache: new PouchDB('decks'),
+    _getDeckById: function(deckId) {
         const uri = Config.host + Config.deckEndpoint + deckId;
         return fetch(uri)
             .then((response) => {
@@ -42,6 +57,9 @@ const DeckResource = {
                     throw new Error("error calling uri "+ uri + " got response status " + response.status);
                 }
             });
+    },
+    getDeckById: function(deckId) {
+        return memoize(this._getDeckById, deckId, this._cache);
     },
     listDecks: function() {
         const uri = Config.host + Config.userDeckEndpoint;
@@ -94,7 +112,8 @@ const DeckResource = {
 }
 
 const CardResource = {
-    getCardByName: function(cardName) {
+    _cache: new PouchDB('cards'),
+    _getCardByName: function(cardName) {
         const uri = Config.host + Config.cardEndpoint + cardName;
         return fetch(uri)
             .then((response) => {
@@ -105,6 +124,9 @@ const CardResource = {
                     throw new Error("error calling uri "+ uri + " got response status " + response.status);
                 }
             });
+    },
+    getCardByName: function(cardName) {
+        return memoize(this._getCardByName, cardName, this._cache);
     },
     getCardsInDeck: function(deck, callback) {
         const cards = [];
@@ -147,6 +169,30 @@ const StashResource = {
     }
 }
 
+const HeaderNavigation = React.createClass({
+    render: function() {
+        return (
+            <header>
+                <nav className="nav-extended">
+                    <div className="nav-bg"
+                        style={{backgroundImage: "url('"+this.props.backgroundImage+"')"}}>
+                    </div>
+                    <div className="nav-wrapper">
+                        <ul className="left">
+                            <li><Link to={this.props.backUrl}><i className="material-icons">arrow_back</i></Link></li>
+                        </ul>
+                        <ul className="right">
+                            <li><a href="#"><i className="material-icons left">search</i>search</a></li>
+                        </ul>
+                    </div>
+                    <div className="nav-header">
+                        <h1>{this.props.title}</h1>
+                    </div>
+                </nav>
+            </header>
+        );
+    }
+});
 
 const Navigation = React.createClass({
     getDefaultProps() {
@@ -154,62 +200,46 @@ const Navigation = React.createClass({
     },
     render: function() {
         return (
-            <nav className={this.props.navbarColor}>
-                <div className="nav-wrapper">
-                    <ul className="left">
-                        {this.props.backUrl &&
-                            <li><Link to={this.props.backUrl}><i className="material-icons left">arrow_back</i></Link></li>
-                        }
-                    </ul>
-                    <a href="#" className="brand-logo">{this.props.title}</a>
-                    <ul className="right">
-                        {this.props.menuItems && this.props.menuItems.map((menuItem, i) => {
-                            if (typeof menuItem.link === 'string') {
-                                return (
-                                    <li key={i}>
-                                        <Link to={menuItem.link}>
-                                            {menuItem.icon &&
-                                                <i className="material-icons left">{menuItem.icon}</i>
-                                            }
-                                            {menuItem.title}
-                                        </Link>
-                                    </li>
-                                );
-                            } else {
-                                return (
-                                    <li key={i}>
-                                        <a href="#" onClick={menuItem.link}>
-                                            {menuItem.icon &&
-                                                <i className="material-icons left">{menuItem.icon}</i>
-                                            }
-                                            {menuItem.title}
-                                        </a>
-                                    </li>
-                                );
+            <header>
+                <nav className={this.props.navbarColor}>
+                    <div className="nav-wrapper">
+                        <ul className="left">
+                            {this.props.backUrl &&
+                                <li><Link to={this.props.backUrl}><i className="material-icons">arrow_back</i></Link></li>
                             }
-                        })}
-                        {this.props.contextMenuItems &&
-                            <li><a className="dropdown-button" href="#!" data-activates="contextual-dropdown"><i className="material-icons">more_vert</i></a></li>
-                        }
-                        <li><a href="#" className="toggle-search"><i className="material-icons left">search</i>Search</a></li>
-                    </ul>
-                </div>
-                <div id="search-bar" className="row white-text grey darken-3" >
-                    <div className="container">
-                        <div className="input-field col s12">
-                            <input id="autocomplete-input-2" type="text" className="autocomplete" placeholder="search ..." />
-                        </div>
+                        </ul>
+                        <a href="#" className="brand-logo">{this.props.title}</a>
+                        <ul className="right">
+                            {this.props.menuItems && this.props.menuItems.map((menuItem, i) => {
+                                if (typeof menuItem.link === 'string') {
+                                    return (
+                                        <li key={i}>
+                                            <Link to={menuItem.link}>
+                                                {menuItem.icon &&
+                                                    <i className="material-icons left">{menuItem.icon}</i>
+                                                }
+                                                {menuItem.title}
+                                            </Link>
+                                        </li>
+                                    );
+                                } else {
+                                    return (
+                                        <li key={i}>
+                                            <a href="#" onClick={menuItem.link}>
+                                                {menuItem.icon &&
+                                                    <i className="material-icons left">{menuItem.icon}</i>
+                                                }
+                                                {menuItem.title}
+                                            </a>
+                                        </li>
+                                    );
+                                }
+                            })}
+                            <li><a href="#"><i className="material-icons left">search</i>Search</a></li>
+                        </ul>
                     </div>
-                </div>
-                <ul id="contextual-dropdown" className="dropdown-content">
-                    <li><a href="#!">one</a></li>
-                    <li><a href="#!">two</a></li>
-                    <li className="divider"></li>
-                    <li><a href="#!">three</a></li>
-                    <li><a href="#!"><i className="material-icons">view_module</i>four</a></li>
-                    <li><a href="#!"><i className="material-icons">cloud</i>five</a></li>
-                </ul>
-            </nav>
+                </nav>
+            </header>
         );
     }
 });
@@ -254,6 +284,7 @@ const FabComponent = React.createClass({
 
 const Manacost = React.createClass({
     render: function() {
+        if (!this.props.mc) return null;
         const elements = this.props.mc
             .split(/{(.*?)}/)
             .filter(str => { return str.trim() != ""; })
@@ -391,17 +422,7 @@ var DeckEditorComponent = React.createClass({
             <main>
                 <Navigation
                     title={this.props.match.params.deckId ? "Edit your deck" : "Create a new deck"}
-                    backUrl={this.props.match.params.deckId ? "/decks/"+this.props.match.params.deckId : "/decks"}
-                    menuItems={[
-                        {
-                            title: "Grimoire",
-                            link: "/decks"
-                        },
-                        {
-                            title: "Settings",
-                            link: "/settings"
-                        }
-                    ]} />
+                    backUrl={this.props.match.params.deckId ? "/decks/"+this.props.match.params.deckId : "/decks"} />
                 <div className="container">
                     <div className="card">
                         <div className="card-content">
@@ -500,17 +521,7 @@ const DeckDeleteComponent = React.createClass({
             <main>
                 <Navigation
                     title={"Delete deck "+this.state.deck.name}
-                    backUrl={"/decks/"+this.state.deck.id}
-                    menuItems={[
-                        {
-                            title: "Grimoire",
-                            link: "/decks"
-                        },
-                        {
-                            title: "Settings",
-                            link: "/settings"
-                        }
-                    ]} />
+                    backUrl={"/decks/"+this.state.deck.id} />
                 <div className="container">
                     <div className="row">
                         <form onSubmit={this.handleDeleteDeck} method="post">
@@ -563,7 +574,7 @@ const CardInfoComponent = React.createClass({
                     </div>
                     <div id="oracle" className="col s8">
                         {this.props.card.name &&
-                            <h3><Link to={"/cards/"+this.props.card.name}>{this.props.card.name}</Link>{'\u00A0'}<sup><Manacost mc={this.props.card.manaCost} /></sup></h3>
+                            <h5><Link to={"/cards/"+this.props.card.name}>{this.props.card.name}</Link>{'\u00A0'}<sup><Manacost mc={this.props.card.manaCost} /></sup></h5>
                         }
                         {this.props.card.type &&
                             <b>{this.props.card.type}</b>
@@ -608,7 +619,7 @@ const CardTile = React.createClass({
 
 const DeckDetailComponent = React.createClass({
     getInitialState: function() {
-        return { deck: null, viewMode: "list", cardFilter: "type", backgroundImage: "" };
+        return { deck: null, cardFilter: "type", backgroundImage: "" };
     },
     componentDidMount: function() {
         DeckResource.getDeckById(this.props.match.params.deckId)
@@ -619,14 +630,6 @@ const DeckDetailComponent = React.createClass({
                     $(".collapsible").collapsible();
                 });
             });
-    },
-    handleViewList: function(e) {
-        e.preventDefault();
-        this.setState({ viewMode: "list" });
-    },
-    handleViewModule: function(e) {
-        e.preventDefault();
-        this.setState({ viewMode: "module" });
     },
     handleCardFilter: function(e) {
         e.preventDefault();
@@ -640,76 +643,55 @@ const DeckDetailComponent = React.createClass({
     render: function() {
         if (this.state.deck == null) return null;
 
-        if (this.state.viewMode === "module") {
-            return null;
-        } else {
-            var totalCards = 0;
-            // <a href="#" onClick={this.handleViewList} className="waves-effect waves-light"><i className="material-icons">view_list</i></a>
-            // <a href="#" onClick={this.handleViewModule} className="waves-effect waves-light"><i className="material-icons">view_module</i></a>
-
-            return (
-                <div>
-                    <header>
-                        <nav className="nav-extended">
-                            <div className="nav-bg"
-                                style={{backgroundImage: "url('"+this.state.backgroundImage+"')"}}>
-                            </div>
-                            <div className="nav-wrapper">
-                                <ul className="left">
-                                    <li><Link to={"/decks"}><i className="material-icons">arrow_back</i></Link></li>
-                                </ul>
-                                <ul className="right">
-                                    <li><a href="#"><i className="material-icons left">search</i>search</a></li>
-                                </ul>
-                            </div>
-                            <div className="nav-header">
-                                <h1>{this.state.deck.name}</h1>
-                            </div>
-                        </nav>
-                    </header>
-                    <div className="nav-action">
-                        <FabComponent
-                            menuItems={[
-                            {
-                                link: "/delete/decks/"+this.state.deck.id,
-                                icon: "delete",
-                                color: "red"
-                            },
-                            {
-                                link: "/editor/decks/"+this.state.deck.id,
-                                icon: "edit",
-                                color: "blue"
-                            }]} />
-                    </div>
-                    <main>
-                        <nav className="pushpin-target purple">
-                            <div className="nav-wrapper">
-                                <ul className="">
-                                    <li>{'\u00A0'}Order by:{'\u00A0'}{'\u00A0'}</li>
-                                    <li className="active"><a href="#" onClick={(e) => this.handleOrderChange(e, 'type')}>Type</a></li>
-                                    <li><a href="#" onClick={(e) => this.handleOrderChange(e, 'color')}>Color</a></li>
-                                    <li><a href="#" onClick={(e) => this.handleOrderChange(e, 'cmc')}>Cmc</a></li>
-                                </ul>
-                            </div>
-                        </nav>
-                        <div className="container">
-                            <ul className="collapsible" data-collapsible="expandable">
-                                {this.state.cards.map((card, i) => {
-                                    totalCards+=card.amount;
-                                    return (
-                                        <li key={i}>
-                                            <div className="collapsible-header">{card.amount}{'\u00A0'}<a>{card.name}</a> <Manacost mc={card.manaCost} /></div>
-                                            <div className="collapsible-body"><CardInfoComponent card={card}/></div>
-                                        </li>
-                                    );
-                                })}
-                            </ul>
-                            total cards: {totalCards}
-                        </div>
-                    </main>
+        var totalCards = 0;
+        return (
+            <div>
+                <HeaderNavigation
+                    title={this.state.deck.name}
+                    backUrl={"/decks"}
+                    backgroundImage={this.state.backgroundImage} />
+                <div className="nav-action">
+                    <FabComponent
+                        menuItems={[
+                        {
+                            link: "/delete/decks/"+this.state.deck.id,
+                            icon: "delete",
+                            color: "red"
+                        },
+                        {
+                            link: "/editor/decks/"+this.state.deck.id,
+                            icon: "edit",
+                            color: "blue"
+                        }]} />
                 </div>
-            );
-        }
+                <main>
+                    <nav className="pushpin-target purple">
+                        <div className="nav-wrapper">
+                            <ul className="">
+                                <li>{'\u00A0'}Order by:{'\u00A0'}{'\u00A0'}</li>
+                                <li className="active"><a href="#" onClick={(e) => this.handleOrderChange(e, 'type')}>Type</a></li>
+                                <li><a href="#" onClick={(e) => this.handleOrderChange(e, 'color')}>Color</a></li>
+                                <li><a href="#" onClick={(e) => this.handleOrderChange(e, 'cmc')}>Cmc</a></li>
+                            </ul>
+                        </div>
+                    </nav>
+                    <div className="container">
+                        <ul className="collapsible" data-collapsible="expandable">
+                            {this.state.cards.map((card, i) => {
+                                totalCards+=card.amount;
+                                return (
+                                    <li key={i}>
+                                        <div className="collapsible-header">{card.amount}{'\u00A0'}<a>{card.name}</a> <Manacost mc={card.manaCost} /></div>
+                                        <div className="collapsible-body"><CardInfoComponent card={card} origin={"/decks/"+this.state.deck.id} /></div>
+                                    </li>
+                                );
+                            })}
+                        </ul>
+                        total cards: {totalCards}
+                    </div>
+                </main>
+            </div>
+        );
     }
 });
 
@@ -739,24 +721,20 @@ const CardComponent = React.createClass({
     render: function() {
         if (this.state.card == null) return null;
         return (
-            <main>
+            <div>
                 <Navigation
                     title={this.state.card.name}
-                    backUrl="/"
-                    contextMenuItems={[
-                    {
-                        title: "Stash",
-                        action: this.actionStash
-                    }]}
-                    />
-                <div className="container">
-                    <div className="card">
-                        <div className="card-content">
-                            <CardInfoComponent card={this.state.card} />
+                    backUrl={this.props.origin} />
+                <main>
+                    <div className="container">
+                        <div className="card">
+                            <div className="card-content">
+                                <CardInfoComponent card={this.state.card} />
+                            </div>
                         </div>
                     </div>
-                </div>
-            </main>
+                </main>
+            </div>
         );
     }
 });
@@ -764,7 +742,7 @@ const CardComponent = React.createClass({
 
 const CardSearchComponent = React.createClass({
     getInitialState: function() {
-        return {cards: [], cardQuery: this.props.match.params.cardQuery};
+        return {cards: [], cardQuery: this.props.match.params.cardQuery, value: this.props.match.params.cardQuery};
     },
     componentDidMount: function() {
         CardResource.searchCards(this.state.cardQuery)
@@ -773,47 +751,55 @@ const CardSearchComponent = React.createClass({
             });
     },
     handleChange: function(e) {
-        const target = e.target;
-        this.setState({
-            [target.name]: target.value
-        });
+        // only update value on change, search triggered by 'Enter'
+        this.setState({value: e.target.value});
+    },
+    handleSearch: function(e) {
+        this.setState({ cardQuery: e.target.value });
     },
     render: function() {
         return (
-            <main>
+            <div>
                 <Navigation
                     title="Search results"
                     backUrl="/" />
-                <div className="container">
-                    <div className="card search-card">
-                        <div className="row">
-                            <div className="input-field col s11">
-                                <i className="material-icons prefix">search</i>
-                                <input
-                                    type="text"
-                                    id="autocomplete-input"
-                                    name="cardQuery"
-                                    className="autocomplete"
-                                    value={this.state.cardQuery}
-                                    onChange={this.handleChange} />
-                                <ul className="autocomplete-content dropdown-content"></ul>
-                            </div>
-                        </div>
-                    </div>
-
-                    Results: {this.state.cards.length}
-
-                    {this.state.cards.map(function(card, i) {
-                        return (
-                            <div key={i} className="card">
-                                <div className="card-content">
-                                    <CardInfoComponent card={card} />
+                <main>
+                    <div className="container">
+                        <div className="card search-card">
+                            <div className="row">
+                                <div className="input-field col s11">
+                                    <i className="material-icons prefix">search</i>
+                                    <input
+                                        type="text"
+                                        id="autocomplete-input"
+                                        name="cardQuery"
+                                        className="autocomplete"
+                                        value={this.state.value}
+                                        onChange={this.handleChange}
+                                        onKeyPress={function(e) {
+                                            if (e.key === "Enter" && e.target.value) {
+                                              this.handleSearch(e);
+                                            }
+                                        }.bind(this)} />
+                                    <ul className="autocomplete-content dropdown-content"></ul>
                                 </div>
                             </div>
-                        );
-                    })}
-                </div>
-            </main>
+                        </div>
+
+                        Results: {this.state.cards.length}
+
+                        {this.state.cards.map(function(card, i) {
+                            return (
+                                <div key={i} className="card">
+                                    <div className="card-content">
+                                        <CardInfoComponent card={card} />
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </main>
+            </div>
         );
     }
 });
@@ -823,26 +809,24 @@ const MyDecksComponent = React.createClass({
         return {decks: []}
     },
     componentDidMount: function() {
-        DeckResource.listDecks()
-        .then((decks) => {
+        DeckResource.listDecks().then((decks) => {
             console.log(decks);
             this.setState({decks: decks});
         });
     },
     render: function() {
-        if (this.state.decks.error != null) {
-            return null;
-        }
+        if (!this.state.decks) return null;
 
         // TODO: "Link to" does not work in the side menu when clicking on one deck then another
         return (
             <main>
                 <Navigation
-                    title="Grimoire"
+                    title="My decks"
                     backUrl="/" />
                 <div className="container">
                     <ul className="collection">
                         {this.state.decks.map((elt, i) => {
+                            console.log(elt);
                             return (
                                 <li key={i} className="collection-item avatar">
                                     <div style={{backgroundImage: "url('"+elt.links.image+"')"}} alt="" className="circle" />
@@ -890,7 +874,7 @@ const HomeComponent = React.createClass({
                                     className="autocomplete"
                                     placeholder="search card ..."
                                     onKeyPress={function(e) {
-                                        if (e.key === 'Enter' && e.target.value) {
+                                        if (e.key === "Enter" && e.target.value) {
                                           this.props.history.push("/search/"+e.target.value);
                                         }
                                     }.bind(this)}/>
