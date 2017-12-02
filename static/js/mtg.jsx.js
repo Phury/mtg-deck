@@ -169,7 +169,7 @@ const StashResource = {
     }
 }
 
-const HeaderNavigation = React.createClass({
+const ExtendedNavigation = React.createClass({
     render: function() {
         return (
             <header>
@@ -182,7 +182,7 @@ const HeaderNavigation = React.createClass({
                             <li><Link to={this.props.backUrl}><i className="material-icons">arrow_back</i></Link></li>
                         </ul>
                         <ul className="right">
-                            <li><a href="#"><i className="material-icons left">search</i>search</a></li>
+                            <li><a href="#search-box" className="search-box-trigger"><i className="material-icons left">search</i>search</a></li>
                         </ul>
                     </div>
                     <div className="nav-header">
@@ -235,7 +235,7 @@ const Navigation = React.createClass({
                                     );
                                 }
                             })}
-                            <li><a href="#"><i className="material-icons left">search</i>Search</a></li>
+                            <li><a href="#search-box" className="search-box-trigger"><i className="material-icons left">search</i>Search</a></li>
                         </ul>
                     </div>
                 </nav>
@@ -258,7 +258,7 @@ const FabComponent = React.createClass({
             const menuItems = this.props.menuItems.map((menuItem, i) => {
                 return (
                     <li key={i}>
-                        <Link to={menuItem.link} className={"modal-trigger btn-floating "+menuItem.color}>
+                        <Link to={menuItem.link} className={"btn-floating "+menuItem.color}>
                             <i className="material-icons">{menuItem.icon}</i>
                         </Link>
                         <span className="mobile-fab-tip">{menuItem.name}</span>
@@ -366,7 +366,30 @@ const Oracle = React.createClass({
     }
 });
 
-var DeckEditorComponent = React.createClass({
+const ModalSearchComponent = React.createClass({
+    render: function() {
+        return (
+            <div id="search-box" className="modal modal-search">
+                <div className="input-field">
+                    <i className="material-icons prefix">search</i>
+                    <input
+                        id="autocomplete-input"
+                        className="autocomplete search"
+                        type="search"
+                        onKeyPress={(e) => {
+                            if (e.key === "Enter" && e.target.value) {
+                                $("#search-box").modal("close");
+                                this.props.history.push("/search/"+e.target.value);
+                            }
+                        }.bind(this)} />
+                </div>
+            </div>
+        );
+    }
+});
+
+
+const DeckEditorComponent = React.createClass({
     getInitialState: function() {
         return { deckName: "", deckCards: "" };
     },
@@ -646,7 +669,7 @@ const DeckDetailComponent = React.createClass({
         var totalCards = 0;
         return (
             <div>
-                <HeaderNavigation
+                <ExtendedNavigation
                     title={this.state.deck.name}
                     backUrl={"/decks"}
                     backgroundImage={this.state.backgroundImage} />
@@ -690,6 +713,7 @@ const DeckDetailComponent = React.createClass({
                         total cards: {totalCards}
                     </div>
                 </main>
+                <ModalSearchComponent history={this.props.history} />
             </div>
         );
     }
@@ -734,6 +758,7 @@ const CardComponent = React.createClass({
                         </div>
                     </div>
                 </main>
+                <ModalSearchComponent history={this.props.history} />
             </div>
         );
     }
@@ -765,27 +790,6 @@ const CardSearchComponent = React.createClass({
                     backUrl="/" />
                 <main>
                     <div className="container">
-                        <div className="card search-card">
-                            <div className="row">
-                                <div className="input-field col s11">
-                                    <i className="material-icons prefix">search</i>
-                                    <input
-                                        type="text"
-                                        id="autocomplete-input"
-                                        name="cardQuery"
-                                        className="autocomplete"
-                                        value={this.state.value}
-                                        onChange={this.handleChange}
-                                        onKeyPress={function(e) {
-                                            if (e.key === "Enter" && e.target.value) {
-                                              this.handleSearch(e);
-                                            }
-                                        }.bind(this)} />
-                                    <ul className="autocomplete-content dropdown-content"></ul>
-                                </div>
-                            </div>
-                        </div>
-
                         Results: {this.state.cards.length}
 
                         {this.state.cards.map(function(card, i) {
@@ -799,6 +803,7 @@ const CardSearchComponent = React.createClass({
                         })}
                     </div>
                 </main>
+                <ModalSearchComponent history={this.props.history} />
             </div>
         );
     }
@@ -819,31 +824,36 @@ const MyDecksComponent = React.createClass({
 
         // TODO: "Link to" does not work in the side menu when clicking on one deck then another
         return (
-            <main>
-                <Navigation
-                    title="My decks"
-                    backUrl="/" />
-                <div className="container">
-                    <ul className="collection">
-                        {this.state.decks.map((elt, i) => {
-                            console.log(elt);
-                            return (
-                                <li key={i} className="collection-item avatar">
-                                    <div style={{backgroundImage: "url('"+elt.links.image+"')"}} alt="" className="circle" />
-                                    <span className="title"><Link to={"/decks/"+elt.id}>{elt.displayName}</Link></span>
-                                    <span className="secondary-content"><Manacost mc={elt.colors} /></span>
-                                </li>
-                            );
-                        })}
-                    </ul>
-                    <FabComponent
-                        menuItems={[
-                        {
-                            link: "/editor/decks",
-                            icon: "add"
-                        }]} />
-                </div>
-            </main>
+            <div>
+                <header>
+                    <Navigation
+                        title="My decks"
+                        backUrl="/" />
+                </header>
+                <main>
+                    <div className="container">
+                        <ul className="collection">
+                            {this.state.decks.map((elt, i) => {
+                                console.log(elt);
+                                return (
+                                    <li key={i} className="collection-item avatar">
+                                        <div style={{backgroundImage: "url('"+elt.links.image+"')"}} alt="" className="circle" />
+                                        <span className="title"><Link to={"/decks/"+elt.id}>{elt.displayName}</Link></span>
+                                        <span className="secondary-content"><Manacost mc={elt.colors} /></span>
+                                    </li>
+                                );
+                            })}
+                        </ul>
+                        <FabComponent
+                            menuItems={[
+                            {
+                                link: "/editor/decks",
+                                icon: "add"
+                            }]} />
+                    </div>
+                </main>
+                <ModalSearchComponent history={this.props.history} />
+            </div>
         );
     }
 });
@@ -851,39 +861,34 @@ const MyDecksComponent = React.createClass({
 const HomeComponent = React.createClass({
     render: function() {
         return (
-            <main className="splash">
-                <nav className="transparent">
-                    <div className="nav-wrapper">
-                        <ul className="left">
-                            <li><a href="#"><i className="material-icons left">menu</i></a></li>
-                        </ul>
-                        <a href="#" className="brand-logo center">{Config.appName}</a>
-                        <ul className="right">
-                            <li><Link to={"/decks"}>My decks</Link></li>
-                        </ul>
-                    </div>
-                </nav>
-                <div className="container">
-                    <div className="card search-card">
-                        <div className="row">
-                            <div className="input-field col s11">
-                                <i className="material-icons prefix">search</i>
+            <div>
+                <header>
+                    <nav className="transparent">
+                        <div className="nav-wrapper">
+                            <ul className="left">
+                                <li><a href="#"><i className="material-icons left">menu</i></a></li>
+                            </ul>
+                            <a href="#" className="brand-logo center">{Config.appName}</a>
+                            <ul className="right">
+                                <li><Link to={"/decks"}>My decks</Link></li>
+                            </ul>
+                        </div>
+                    </nav>
+                </header>
+                <main className="splash">
+                    <div className="container">
+                        <div id="search-bar" className="row search-bar" >
+                            <div className="input-field col s12">
                                 <input
-                                    type="text"
-                                    id="autocomplete-input"
+                                    type="search"
                                     className="autocomplete"
-                                    placeholder="search card ..."
-                                    onKeyPress={function(e) {
-                                        if (e.key === "Enter" && e.target.value) {
-                                          this.props.history.push("/search/"+e.target.value);
-                                        }
-                                    }.bind(this)}/>
-                                <ul className="autocomplete-content dropdown-content"></ul>
+                                    placeholder="search" />
                             </div>
                         </div>
                     </div>
-                </div>
-            </main>
+                </main>
+                <ModalSearchComponent history={this.props.history} />
+            </div>
         );
     }
 });
@@ -891,6 +896,9 @@ const HomeComponent = React.createClass({
 const MtgApp = React.createClass({
     componentDidMount: function() {
         document.title = Config.appName;
+        jqueryHandle();
+    },
+    componentWillReceiveProps: function(newProps) {
         jqueryHandle();
     },
     render: function() {
@@ -920,24 +928,34 @@ var jqueryInitialized = false;
 
 function jqueryHandle() {
 
-    var checkExists = setInterval(function() {
+    const checkExists = setInterval(() => {
         if (typeof $("#autocomplete-input").autocomplete === "function") {
-            console.log(typeof $("#autocomplete-input").autocomplete);
             clearInterval(checkExists);
+
+            // Dropdown items
+            $("#contextual-dropdown").dropdown();
+
+            // Select components
+            $("select").material_select();
 
             // Tabs
             $('ul.tabs').tabs();
 
-            // handle toggle of the search bar
-            var searchBar = $("div#search-bar"),
-                searchInput = searchBar.find("input");
-            $("a.toggle-search").click(function() {
-                searchBar.is(":visible") ? searchBar.slideUp() : searchBar.slideDown(function() {
-                    searchInput.focus();
-                });
-                return false;
+            // Modals
+            const searchBox = $("#search-box");
+            searchBox.modal();
+
+            // show modal search-box on search-bar focus
+            $(".search-bar input[type='search']").focus(() => {
+                searchBox.modal("open");
+                searchBox.find("#autocomplete-input").focus();
             });
-            //searchInput.focusout(function() { searchBar.slideUp(); });
+
+            // show modal search-box on search-box-trigger click
+            $(".search-box-trigger").on('click', (e) => {
+                e.preventDefault();
+                searchBox.modal("open");
+            });
 
             // handle auto-complete feature of the search bar
             $("#autocomplete-input").autocomplete({
@@ -954,14 +972,8 @@ function jqueryHandle() {
                 minLength: 3
             });
 
-            // Initialize dropdown items in menu
-            $("#contextual-dropdown").dropdown();
-
-            // Initialize select components
-            $("select").material_select();
-
             jqueryInitialized = true;
-            console.log("jquery initialized");
+            console.log("components refreshed");
         };
     }, 100);
 }

@@ -61,11 +61,6 @@ nav.transparent .brand-logo, nav.transparent ul a {
     padding-left: 86px;
 }
 
-
-#search-bar {
-    display: none;
-}
-
 .collapsible-header {
     position: relative;
 }
@@ -201,4 +196,34 @@ nav .nav-header {
 
 .pushpin-target.pinned {
   z-index: 1;
+}
+
+
+/*
+ * Modal search box
+ */
+.modal.open {
+  top: 1% !important;
+  width: 99% !important;
+  height: 75vh;
+  background-color: #fff;
+}
+.modal .input-field {
+  margin: 1em;
+}
+.modal .input-field .autocomplete-content {
+  border: 1px solid #ddd;
+  box-shadow: none;
+}
+.modal .input-field .autocomplete-content li {
+  border-bottom: 1px solid #ddd;
+}
+.modal .input-field i.material-icons {
+  color: #111;
+  font-size: 1.4rem;
+  top: 10px;
+}
+.modal .input-field input.search {
+  border: none !important;
+  box-shadow: none !important;
 }
