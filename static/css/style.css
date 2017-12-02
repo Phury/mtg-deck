@@ -1,11 +1,18 @@
-@import url('https://fonts.googleapis.com/css?family=Average');
+@font-face {
+  font-family: 'Beleren';
+  src: url('//magarena.github.io/public/css/woff/Beleren.woff') format('woff');
+}
 
-body {
+body, main {
     background-color: #f7f7f7;
 }
 
-main {
-    background-color: #f7f7f7;
+h1 {
+    font-size: 3rem;
+}
+
+h1, h2, h3, h4, h5, h6, nav .brand-logo {
+  font-family: "Beleren";
 }
 
 .sr-only {
@@ -19,8 +26,17 @@ main {
     border: 0;
 }
 
-.collapsible-body {
+hr {
+    width: 50px;
+    border: 2px solid #9c27b0;
+    margin: 5rem auto;
+}
+
+ul.collapsible li div {
     background-color: #fff;
+}
+.collapsible-header.disabled {
+    cursor: auto;
 }
 
 .card-thumbnail {
@@ -50,6 +66,10 @@ nav.transparent .brand-logo, nav.transparent ul a {
     color: #9c27b0;
     font-weight: bold;
 }
+nav .button-collapse {
+    margin: 0;
+}
+
 .avatar div.circle,.collection .collection-item.avatar:not(.circle-clipper)>.circle {
     background-size: 150%;
     background-position: 15% 20%;
@@ -107,48 +127,58 @@ sup .mc i {
  * Nav with background image
  */
 nav.nav-extended {
-  height: auto;
-  background-color: transparent;
-  background-color: rgba(156, 39, 176, 0.3);
+    height: auto;
+    background-color: transparent;
+    background-color: rgba(156, 39, 176, 0.3);
 }
 
+nav.nav-extended.home {
+    background-color: transparent;
+    color: #9c27b0;
+    box-shadow: none;
+}
+nav.nav-extended.home ul a {
+    color: #333;
+}
+nav.nav-extended.home .nav-header {
+    text-align: center;
+}
 nav .nav-bg {
-  overflow: hidden;
-  position: absolute;
-  top: 0;
-  right: 0;
-  left: 0;
-  bottom: 0;
-  z-index: -1;
+    overflow: hidden;
+    position: absolute;
+    top: 0;
+    right: 0;
+    left: 0;
+    bottom: 0;
+    z-index: -1;
 
-  background-size: 120%;
-  background-position: center 20%;
-  background-repeat: no-repeat;
-  opacity: 0.6;
+    background-size: 120%;
+    background-position: center 40%;
+    background-repeat: no-repeat;
+    opacity: 0.6;
 
-  image-rendering: pixelated;
-  /* see: https://builtvisible.com/image-scaling-in-css/ */
+    image-rendering: pixelated;
+    /* see: https://builtvisible.com/image-scaling-in-css/ */
 }
 
 nav .nav-header {
-  word-wrap: break-word;
-  clear: both;
-  padding: 40px;
+    word-wrap: break-word;
+    clear: both;
+    padding: 40px;
 }
 
 .nav-action {
-  position: relative;
+    position: relative;
 }
 
 .nav-action .fixed-action-btn {
-  position: absolute;
-  /*top: -30px;*/
-  display: inline-block;
-  right: 24px;
+    position: absolute;
+    display: inline-block;
+    right: 24px;
 }
 
 .pushpin-target.pinned {
-  z-index: 1;
+    z-index: 1;
 }
 
 
@@ -156,27 +186,61 @@ nav .nav-header {
  * Modal search box
  */
 .modal.open {
-  top: 1% !important;
-  width: 99% !important;
-  height: 75vh;
-  background-color: #fff;
+    top: 1% !important;
+    width: 99% !important;
+    height: 75vh;
+    background-color: #fff;
 }
 .modal .input-field {
-  margin: 1em;
+    margin: 1em;
 }
 .modal .input-field .autocomplete-content {
-  border: 1px solid #ddd;
-  box-shadow: none;
+    border: 1px solid #ddd;
+    box-shadow: none;
 }
 .modal .input-field .autocomplete-content li {
-  border-bottom: 1px solid #ddd;
+    border-bottom: 1px solid #ddd;
 }
 .modal .input-field i.material-icons {
-  color: #111;
-  font-size: 1.4rem;
-  top: 10px;
+    color: #111;
+    font-size: 1.4rem;
+    top: 10px;
 }
 .modal .input-field input.search {
-  border: none !important;
-  box-shadow: none !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+/*
+ * Animation for search bar
+ */
+.search-bar {
+    margin: 0;
+    background-color: #fff;
+    -webkit-box-shadow: 1px 1px 2px 0px #708890;
+       -moz-box-shadow: 1px 1px 2px 0px #708890;
+            box-shadow: 1px 1px 2px 0px #708890;
+}
+.search-bar-container .search-bar {
+    position: relative;
+    top: 0;
+    z-index: 10;
+    /*
+    -webkit-transition: all .2s ease 0s;
+    -webkit-transform: translate(0, 0);
+    */
+}
+.search-bar-container .search-bar.focused {
+    top: -240px;
+}
+.search-bar-container .search-bar input[type=search] {
+    border: 0 !important;
+    box-shadow: none !important;
+    margin: 0;
+}
+.card.search-bar .card-content {
+    padding: 3px 10px;
+}
+.nav-wrapper.fixed {
+    position: fixed;
 }

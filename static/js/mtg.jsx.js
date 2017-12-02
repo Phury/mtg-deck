@@ -9,7 +9,7 @@ const {
 
 const Config = {
     host: "",
-    appName: "Urza's grimoire",
+    appName: "Counterspell",
     cardEndpoint: "/api/cards/",
     cardSearchEndpoint: "/api/cards/search?q=",
     deckEndpoint: "/api/decks/",
@@ -173,16 +173,34 @@ const ExtendedNavigation = React.createClass({
     render: function() {
         return (
             <header>
-                <nav className="nav-extended">
-                    <div className="nav-bg"
-                        style={{backgroundImage: "url('"+this.props.backgroundImage+"')"}}>
-                    </div>
+                <nav className={"nav-extended "+(this.props.backUrl ? "" : "home")}>
+                    {this.props.backgroundImage &&
+                        <div className="nav-bg"
+                            style={{backgroundImage: "url('"+this.props.backgroundImage+"')"}}>
+                        </div>
+                    }
                     <div className="nav-wrapper">
-                        <ul className="left">
-                            <li><Link to={this.props.backUrl}><i className="material-icons">arrow_back</i></Link></li>
-                        </ul>
-                        <ul className="right">
-                            <li><a href="#search-box" className="search-box-trigger"><i className="material-icons left">search</i>search</a></li>
+                        {this.props.backUrl &&
+                            <ul className="left">
+                                <li><Link to={this.props.backUrl}><i className="material-icons">arrow_back</i></Link></li>
+                            </ul>
+                        }
+                        {!this.props.backUrl &&
+                            <ul className="left">
+                                <li>
+                                    <a href="#" data-activates="slide-out" className="button-collapse show-on-large">
+                                        <i className="material-icons left">menu</i>
+                                    </a>
+                                </li>
+                            </ul>
+                        }
+                        {this.props.backUrl &&
+                            <ul className="right">
+                                <li><a href="#search-box" className="search-box-trigger"><i className="material-icons left">search</i>search</a></li>
+                            </ul>
+                        }
+                        <ul className="side-nav" id="slide-out">
+                            <li><a href="https://github.com/Phury/mtg-deck" target="_blank">About</a></li>
                         </ul>
                     </div>
                     <div className="nav-header">
@@ -448,7 +466,7 @@ const DeckEditorComponent = React.createClass({
             <div>
                 <Navigation
                     title={this.props.match.params.deckId ? "Edit your deck" : "Create a new deck"}
-                    backUrl={this.props.match.params.deckId ? "/decks/"+this.props.match.params.deckId : "/decks"} />
+                    backUrl={this.props.match.params.deckId ? "/decks/"+this.props.match.params.deckId : "/"} />
                 <main>
                     <div className="container">
                         <div className="card">
@@ -545,7 +563,7 @@ const DeckDeleteComponent = React.createClass({
                 .then((data) => {
                     Materialize.toast("Deck '"+this.state.deck.name+"' deleted", 8000);
                     this.setState(this.getInitialState());
-                    this.props.history.push("/decks");
+                    this.props.history.push("/");
                 });
         } else {
             Materialize.toast("Entered deck name '"+this.state.deckName+"' does not match '"+this.state.deck.name+"'", 8000);
@@ -686,7 +704,7 @@ const DeckDetailComponent = React.createClass({
             <div>
                 <ExtendedNavigation
                     title={this.state.deck.name}
-                    backUrl={"/decks"}
+                    backUrl={"/"}
                     backgroundImage={this.state.backgroundImage} />
                 <div className="nav-action">
                     <FabComponent
@@ -715,6 +733,10 @@ const DeckDetailComponent = React.createClass({
                     </nav>
                     <div className="container">
                         <ul className="collapsible" data-collapsible="expandable">
+
+                            <li>
+                                <div className="collapsible-header disabled"><h6>Creatures (20)</h6></div>
+                            </li>
                             {this.state.cards.map((card, i) => {
                                 totalCards+=card.amount;
                                 return (
@@ -724,8 +746,10 @@ const DeckDetailComponent = React.createClass({
                                     </li>
                                 );
                             })}
+                            <li>
+                                <div className="collapsible-header disabled">total: {totalCards}</div>
+                            </li>
                         </ul>
-                        total cards: {totalCards}
                     </div>
                 </main>
                 <ModalSearchComponent history={this.props.history} />
@@ -817,7 +841,7 @@ const CardSearchComponent = React.createClass({
     }
 });
 
-const MyDecksComponent = React.createClass({
+const HomeComponent = React.createClass({
     getInitialState: function() {
         return {decks: []}
     },
@@ -833,13 +857,24 @@ const MyDecksComponent = React.createClass({
         // TODO: "Link to" does not work in the side menu when clicking on one deck then another
         return (
             <div>
-                <header>
-                    <Navigation
-                        title="My decks"
-                        backUrl="/" />
-                </header>
+                <ExtendedNavigation
+                    title={Config.appName} />
                 <main>
                     <div className="container">
+                        <div className="search-bar-container" >
+                            <div id="search-bar" className="card search-bar" >
+                                <div className="card-content">
+                                    <input
+                                        type="search"
+                                        className="autocomplete"
+                                        id="autocomplete-input-home"
+                                        placeholder="search" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr />
+
                         <ul className="collection">
                             {this.state.decks.map((elt, i) => {
                                 return (
@@ -865,48 +900,6 @@ const MyDecksComponent = React.createClass({
     }
 });
 
-const HomeComponent = React.createClass({
-    render: function() {
-        return (
-            <div className="splash">
-                <header>
-                    <nav className="transparent">
-                        <div className="nav-wrapper">
-                            <ul className="left">
-                                <li>
-                                    <a href="#" data-activates="slide-out" className="button-collapse show-on-large">
-                                        <i className="material-icons left">menu</i>
-                                    </a>
-                                </li>
-                            </ul>
-                            <a href="#" className="brand-logo center">{Config.appName}</a>
-                            <ul className="right">
-                                <li><Link to={"/decks"}>My decks</Link></li>
-                            </ul>
-                            <ul className="side-nav" id="slide-out">
-                                <li><a href="https://github.com/Phury/mtg-deck" target="_blank">About</a></li>
-                            </ul>
-                        </div>
-                    </nav>
-                </header>
-                <main>
-                    <div className="container">
-                        <div id="search-bar" className="row search-bar" >
-                            <div className="input-field col s12">
-                                <input
-                                    type="search"
-                                    className="autocomplete"
-                                    placeholder="search" />
-                            </div>
-                        </div>
-                    </div>
-                </main>
-                <ModalSearchComponent history={this.props.history} />
-            </div>
-        );
-    }
-});
-
 const MtgApp = React.createClass({
     componentDidMount: function() {
         document.title = Config.appName;
@@ -919,7 +912,6 @@ const MtgApp = React.createClass({
         return (
             <Switch>
                   <Route exact path="/" component={HomeComponent} />
-                  <Route exact path="/decks" component={MyDecksComponent} />
                   <Route path="/decks/:deckId" component={DeckDetailComponent} />
                   <Route exact path="/editor/decks" component={DeckEditorComponent} />
                   <Route path="/editor/decks/:deckId" component={DeckEditorComponent} />
@@ -964,8 +956,11 @@ function jqueryHandle() {
 
             // show modal search-box on search-bar focus
             $(".search-bar input[type='search']").focus(() => {
+            //    $(".search-bar-container .search-bar").addClass("focused");
                 searchBox.modal("open");
                 searchBox.find("#autocomplete-input").focus();
+            //}).blur(() => {
+            //    $(".search-bar-container .search-bar").removeClass("focused");
             });
 
             // show modal search-box on search-box-trigger click
