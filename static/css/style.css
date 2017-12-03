@@ -244,3 +244,10 @@ nav .nav-header {
 .nav-wrapper.fixed {
     position: fixed;
 }
+
+@media screen and (min-width: 640px) {
+    nav .nav-bg {
+        background-size: 150%;
+        background-position: center 20%;
+    }
+}
