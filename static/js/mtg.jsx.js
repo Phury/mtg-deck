@@ -625,6 +625,38 @@ const DeckDeleteComponent = React.createClass({
     }
 });
 
+const CardImageComponent = React.createClass({
+    getInitialState: function() {
+        return { flipped: false };
+    },
+    render() {
+        return (
+            <div className="flip-wrapper">
+                <div className={"flip-container "+(this.state.flipped ? "hover" : "")}>
+                    <div className="flipper">
+                        {this.props.card.links &&
+                                <a href={this.props.card.links.image} data-lightbox="deck-1" data-title={this.props.card.name}>
+                                    <img className="front card-thumbnail" src={this.props.card.links.image} />
+                                </a>
+                        }
+                        {this.props.card.links.hasOwnProperty('flip_image') &&
+                                <img className="back card-thumbnail" src={this.props.card.links.flip_image} />
+                        }
+                    </div>
+                </div>
+                {this.props.card.links.hasOwnProperty('flip_image') &&
+                    <a className="btn-floating waves-effect waves-light amber"
+                        onClick={(evt) => {
+                            evt.preventDefault();
+                            this.setState({ flipped: !this.state.flipped })
+                        }.bind(this)}><i className="ms ms-untap"></i>
+                    </a>
+                }
+            </div>
+        );
+    }
+});
+
 const CardInfoComponent = React.createClass({
     showModal: function(e) {
         e.preventDefault();
@@ -639,13 +671,8 @@ const CardInfoComponent = React.createClass({
         return (
             <div className="mtg-card-info">
                 <div className="row">
-                    <div className="col s4 card-name">
-                        {this.props.card.links &&
-                            <a href={this.props.card.links.image} data-lightbox="deck-1" data-title={this.props.card.name}><img className="card-thumbnail side-a" src={this.props.card.links.image} /></a>
-                        }
-                        {this.props.card.links.hasOwnProperty('flip_image') &&
-                            <img className="card-thumbnail side-b" src={this.props.card.links.flip_image} />
-                        }
+                    <div className="col s4">
+                        <CardImageComponent card={this.props.card} />
                     </div>
                     <div className="col s8 oracle">
                         {this.props.card.name &&

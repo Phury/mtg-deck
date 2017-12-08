@@ -53,7 +53,7 @@ ul.collapsible li div {
     border-radius: 5px;
 }
 .card-thumbnail.side-b {
-    display: none;
+    /*display: none;*/
 }
 
 .col.s12 > .btn {
@@ -254,9 +254,141 @@ nav .nav-header {
     position: fixed;
 }
 
-@media screen and (min-width: 640px) {
+/*
+ * Flip card
+ */
+.flip-wrapper {
+    text-align: center;
+}
+.flip-wrapper a.btn-floating {
+    position: relative;
+    top: -10px;
+}
+.flip-container {
+    -webkit-perspective: 1000;
+    -moz-perspective: 1000;
+    -o-perspective: 1000;
+    perspective: 1000;
+}
+
+.flip-container.hover .flipper {
+    -webkit-transform: rotateY(180deg);
+    -moz-transform: rotateY(180deg);
+    -o-transform: rotateY(180deg);
+    transform: rotateY(180deg);
+}
+
+.flipper {
+    -webkit-transition: 0.6s;
+    -webkit-transform-style: preserve-3d;
+
+    -moz-transition: 0.6s;
+    -moz-transform-style: preserve-3d;
+
+    -o-transition: 0.6s;
+    -o-transform-style: preserve-3d;
+
+    transition: 0.6s;
+    transform-style: preserve-3d;
+
+    position: relative;
+}
+
+.flipper .front, .flipper .back {
+    -webkit-backface-visibility: hidden;
+       -moz-backface-visibility: hidden;
+         -o-backface-visibility: hidden;
+            backface-visibility: hidden;
+
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+.flipper .back {
+    -webkit-transform: rotateY(180deg);
+       -moz-transform: rotateY(180deg);
+         -o-transform: rotateY(180deg);
+            transform: rotateY(180deg);
+}
+
+
+
+/*
+ * Media queries
+ */
+
+/*==========  Mobile First Method  ==========*/
+
+/* Custom, iPhone Retina */
+@media only screen and (min-width : 320px) {
+
+}
+
+/* Extra Small Devices, Phones */
+@media only screen and (min-width : 480px) {
+
+}
+
+/* Small Devices, Tablets */
+@media only screen and (min-width : 768px) {
     nav .nav-bg {
         background-size: 150%;
         background-position: center 20%;
     }
+
+    .flip-container, .front, .back {
+        height: 396px;
+    }
+}
+
+/* Medium Devices, Desktops */
+@media only screen and (min-width : 992px) {
+
+}
+
+/* Large Devices, Wide Screens */
+@media only screen and (min-width : 1200px) {
+
+}
+
+/*==========  Non-Mobile First Method  ==========*/
+
+/* Large Devices, Wide Screens */
+@media only screen and (max-width : 1200px) {
+
+}
+
+/* Medium Devices, Desktops */
+@media only screen and (max-width : 992px) {
+
+}
+
+/* Small Devices, Tablets */
+@media only screen and (max-width : 768px) {
+
+}
+
+/* Extra Small Devices, Phones */
+@media only screen and (max-width : 480px) {
+    nav .nav-bg {
+        background-size: 150%;
+        background-position: center 15%;
+    }
+
+    nav .nav-header {
+        padding: 15px;
+    }
+    nav .nav-header h1 {
+        font-size: 2rem;
+    }
+
+    .flip-container, .front, .back {
+        height: 128px;
+    }
+}
+
+/* Custom, iPhone Retina */
+@media only screen and (max-width : 320px) {
+
 }
