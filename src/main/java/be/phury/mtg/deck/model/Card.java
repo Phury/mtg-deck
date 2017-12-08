@@ -12,6 +12,9 @@ import java.util.Set;
 public class Card extends ApiModel {
     private String name;
     private String type;
+    private List<String> superTypes;
+    private List<String> types;
+    private List<String> subTypes;
     private String manaCost;
     private Integer convertedManaCost;
     private String oracle;
@@ -33,6 +36,30 @@ public class Card extends ApiModel {
 
     public void setType(String type) {
         this.type = type;
+    }
+
+    public List<String> getSuperTypes() {
+        return superTypes;
+    }
+
+    public void setSuperTypes(List<String> superTypes) {
+        this.superTypes = superTypes;
+    }
+
+    public List<String> getTypes() {
+        return types;
+    }
+
+    public void setTypes(List<String> types) {
+        this.types = types;
+    }
+
+    public List<String> getSubTypes() {
+        return subTypes;
+    }
+
+    public void setSubTypes(List<String> subTypes) {
+        this.subTypes = subTypes;
     }
 
     public String getManaCost() {

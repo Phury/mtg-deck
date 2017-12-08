@@ -32,7 +32,7 @@ const cloneObj = (obj) => {
 
 const searchHistory = {};
 
-PouchDB.debug.enable('*');
+//PouchDB.debug.enable('*');
 
 const memoize = function(func, param, cache) {
     return cache.get(param).catch((err) => {
@@ -129,20 +129,23 @@ const CardResource = {
         return memoize(this._getCardByName, cardName, this._cache);
     },
     getCardsInDeck: function(deck, callback) {
-        const cards = [];
+        console.log({ message: "getCardsInDeck", deck: deck });
+        //const cards = [];
         deck.cards.map((elt, i) => {
             const space = elt.indexOf(" ");
             const numberOfCards = parseInt(elt.substring(0, space)) || 1;
             const cardName = elt.substring(space+1, elt.length);
+            console.log({numberOfCards: numberOfCards, cardName: cardName});
             CardResource.getCardByName(cardName)
                 .then(card => {
                     card.amount = numberOfCards;
-                    cards.push(card);
-                    callback(cards);
+                    //cards.push(card);
+                    callback([card]);
                 })
                 .catch(error => {
                     console.log(error+": could not retrieve card "+cardName);
-                    return {amount: numberOfCards, name: cardName, manaCost: "", convertedManaCost: 0, links: {}};// TODO: Handle null fields in CardInfoComponent to be more robust
+                    // TODO: Handle null fields in CardInfoComponent to be more robust
+                    return {amount: numberOfCards, name: cardName, manaCost: "", convertedManaCost: 0, links: {}};
                 })
         });
     },
@@ -298,11 +301,27 @@ const FabComponent = React.createClass({
         }
     }
 });
+const ColorLabel = React.createClass({
+    _colors: {w: "White", u: "Blue", r: "Red", b: "Black", g: "Green"},
+    render: function() {
+        if (!this.props.color) return null;
+        if (this.props.color.indexOf("{") == -1) return (<span>{this.props.color}</span>);
+        const elements = this.props.color
+            .split(/{(.*?)}/)
+            .filter(str => { return str.trim() != ""; })
+            .map((elt, i) => {
+                return (<span key={i}>{this._colors[elt]}</span>);
+            });
+        return (
+            <span>{elements}</span>
+        );
+    }
+});
 
-
-const Manacost = React.createClass({
+const ManaCostLabel = React.createClass({
     render: function() {
         if (!this.props.mc) return null;
+        if (this.props.mc.indexOf("{") == -1) return (<span>{this.props.mc}</span>);
         const elements = this.props.mc
             .split(/{(.*?)}/)
             .filter(str => { return str.trim() != ""; })
@@ -620,7 +639,7 @@ const CardInfoComponent = React.createClass({
         return (
             <div className="mtg-card-info">
                 <div className="row">
-                    <div id="preview" className="col s4">
+                    <div className="col s4 card-name">
                         {this.props.card.links &&
                             <a href={this.props.card.links.image} data-lightbox="deck-1" data-title={this.props.card.name}><img className="card-thumbnail side-a" src={this.props.card.links.image} /></a>
                         }
@@ -628,9 +647,9 @@ const CardInfoComponent = React.createClass({
                             <img className="card-thumbnail side-b" src={this.props.card.links.flip_image} />
                         }
                     </div>
-                    <div id="oracle" className="col s8">
+                    <div className="col s8 oracle">
                         {this.props.card.name &&
-                            <h5><Link to={"/cards/"+this.props.card.name}>{this.props.card.name}</Link>{'\u00A0'}<sup><Manacost mc={this.props.card.manaCost} /></sup></h5>
+                            <h5><Link to={"/cards/"+this.props.card.name}>{this.props.card.name}</Link>{'\u00A0'}<sup><ManaCostLabel mc={this.props.card.manaCost} /></sup></h5>
                         }
                         {this.props.card.type &&
                             <b>{this.props.card.type}</b>
@@ -673,28 +692,76 @@ const CardTile = React.createClass({
     }
 });
 
+const DeckInfoComponent = React.createClass({
+    render() {
+        return(
+            <div>
+                <ul>
+                    <li>colors: <ManaCostLabel mc={this.props.deck.colors} /></li>
+                </ul>
+            </div>
+        );
+    }
+});
+
 const DeckDetailComponent = React.createClass({
+    _groupCards(cards, grouping) {
+        var cardsGrouped;
+        switch (grouping) {
+            default:
+            case 'type':
+                cardsGrouped = cards.reduce((acc, card) => {
+                    acc[card.types[0]] = acc[card.types[0]] || [];
+                    acc[card.types[0]].push(card);
+                    return acc;
+                }, []);
+            break;
+                case 'color':
+                cardsGrouped = cards.reduce((acc, card) => {
+                    const color = (!card.colors.length ? 'Colorless' : card.colors.length > 1 ? 'Gold' : card.colors[0]);
+                    acc[color] = acc[color] || [];
+                    acc[color].push(card);
+                    return acc;
+                }, []);
+                break;
+            case 'cmc':
+                cardsGrouped = cards.reduce((acc, card) => {
+                    acc[card.convertedManaCost] = acc[card.convertedManaCost] || [];
+                    acc[card.convertedManaCost].push(card);
+                    return acc;
+                }, []);
+                break;
+        }
+        return cardsGrouped;
+    },
     getInitialState: function() {
-        return { deck: null, cardFilter: "type", backgroundImage: "" };
+        return { deck: null, cardGrouping: "type", backgroundImage: null, cards: [], cardsGrouped: [] };
     },
     componentDidMount: function() {
         DeckResource.getDeckById(this.props.match.params.deckId)
             .then((deck) => {
                 CardResource.getCardsInDeck(deck, (cards) => {
-                    console.log(cards);
-                    this.setState({ deck: deck, cards: cards, backgroundImage: cards[0].links.image  });
-                    $(".collapsible").collapsible();
+                    //console.log(cards);
+                    const allCards = this.state.cards.concat(cards);
+                    this.setState({
+                        deck: deck,
+                        cardsGrouped: this._groupCards(allCards, this.state.grouping),
+                        cards: allCards
+                    });
+                    if (!this.state.backgroundImage) {
+                        this.setState({ backgroundImage: cards[0].links.image });
+                    }
+                    refreshJqueryComponents();
                 });
             });
     },
-    handleCardFilter: function(e) {
+    handleGroupingChange: function(e, grouping) {
         e.preventDefault();
-        this.setState({ filter: evt.target.value });
-        // TODO: put cards in map with filter as key and render
-    },
-    handleOrderChange: function(e, order) {
-        e.preventDefault();
-        console.log(order);
+        this.setState({
+            cardGrouping: grouping,
+            cardsGrouped: this._groupCards(this.state.cards, grouping)
+        });
+        refreshJqueryComponents();
     },
     render: function() {
         if (this.state.deck == null) return null;
@@ -725,31 +792,50 @@ const DeckDetailComponent = React.createClass({
                         <div className="nav-wrapper">
                             <ul className="">
                                 <li>{'\u00A0'}Order by:{'\u00A0'}{'\u00A0'}</li>
-                                <li className="active"><a href="#" onClick={(e) => this.handleOrderChange(e, 'type')}>Type</a></li>
-                                <li><a href="#" onClick={(e) => this.handleOrderChange(e, 'color')}>Color</a></li>
-                                <li><a href="#" onClick={(e) => this.handleOrderChange(e, 'cmc')}>Cmc</a></li>
+                                <li className={this.state.cardGrouping === "type" ? "active" : ""}>
+                                    <a href="#" onClick={(e) => this.handleGroupingChange(e, 'type')}>Type</a>
+                                </li>
+
+                                <li className={this.state.cardGrouping === "color" ? "active" : ""}>
+                                    <a href="#" onClick={(e) => this.handleGroupingChange(e, 'color')}>Color</a>
+                                </li>
+
+                                <li className={this.state.cardGrouping === "cmc" ? "active" : ""}>
+                                    <a href="#" onClick={(e) => this.handleGroupingChange(e, 'cmc')}>Cmc</a>
+                                </li>
                             </ul>
                         </div>
                     </nav>
                     <div className="container">
-                        <ul className="collapsible" data-collapsible="expandable">
-
-                            <li>
-                                <div className="collapsible-header disabled"><h6>Creatures (20)</h6></div>
-                            </li>
-                            {this.state.cards.map((card, i) => {
-                                totalCards+=card.amount;
+                        <div className="collapsible-group">
+                            {Object.keys(this.state.cardsGrouped).map((groupName) => {
+                                const cardGroup = this.state.cardsGrouped[groupName];
+                                var cardsInGroup = 0;
+                                cardGroup.map((card, i) => { cardsInGroup+=card.amount; });
                                 return (
-                                    <li key={i}>
-                                        <div className="collapsible-header">{card.amount}{'\u00A0'}<a>{card.name}</a> <Manacost mc={card.manaCost} /></div>
-                                        <div className="collapsible-body"><CardInfoComponent card={card} origin={"/decks/"+this.state.deck.id} /></div>
-                                    </li>
+                                    <ul className="collapsible popout" data-collapsible="accordion" key={groupName}>
+                                        <li>
+                                            <div className="collapsible-header disabled"><h6><ColorLabel color={groupName} /> ({cardsInGroup})</h6></div>
+                                        </li>
+                                        {cardGroup.map((card, i) => {
+                                            totalCards+=card.amount;
+                                            return (
+                                                <li key={i}>
+                                                    <div className="collapsible-header">{card.amount}{'\u00A0'}<a>{card.name}</a> <ManaCostLabel mc={card.manaCost} /></div>
+                                                    <div className="collapsible-body"><CardInfoComponent card={card} /></div>
+                                                </li>
+                                            );
+                                        })}
+                                    </ul>
                                 );
                             })}
-                            <li>
-                                <div className="collapsible-header disabled">total: {totalCards}</div>
-                            </li>
-                        </ul>
+                            <ul className="collapsible popout" data-collapsible="accordion">
+                                <li>
+                                    <div className="collapsible-header"><h6>{totalCards} cards</h6></div>
+                                    <div className="collapsible-body"><DeckInfoComponent deck={this.state.deck} /></div>
+                                </li>
+                            </ul>
+                        </div>
                     </div>
                 </main>
                 <ModalSearchComponent history={this.props.history} />
@@ -881,7 +967,7 @@ const HomeComponent = React.createClass({
                                     <li key={i} className="collection-item avatar">
                                         <div style={{backgroundImage: "url('"+elt.links.image+"')"}} alt="" className="circle" />
                                         <span className="title"><Link to={"/decks/"+elt.id}>{elt.displayName}</Link></span>
-                                        <span className="secondary-content"><Manacost mc={elt.colors} /></span>
+                                        <span className="secondary-content"><ManaCostLabel mc={elt.colors} /></span>
                                     </li>
                                 );
                             })}
@@ -903,10 +989,10 @@ const HomeComponent = React.createClass({
 const MtgApp = React.createClass({
     componentDidMount: function() {
         document.title = Config.appName;
-        jqueryHandle();
+        refreshJqueryComponents();
     },
     componentWillReceiveProps: function(newProps) {
-        jqueryHandle();
+        refreshJqueryComponents();
     },
     render: function() {
         return (
@@ -932,7 +1018,7 @@ ReactDOM.render(
 
 var jqueryInitialized = false;
 
-function jqueryHandle() {
+function refreshJqueryComponents() {
 
     const checkExists = setInterval(() => {
         if (typeof $("#autocomplete-input").autocomplete === "function") {
@@ -949,6 +1035,9 @@ function jqueryHandle() {
 
             // tabs
             $('ul.tabs').tabs();
+
+            // collapsible
+            $(".collapsible").collapsible();
 
             // modals
             const searchBox = $("#search-box");

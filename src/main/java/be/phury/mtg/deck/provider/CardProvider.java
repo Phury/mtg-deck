@@ -14,6 +14,7 @@ import org.springframework.util.StringUtils;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -22,6 +23,7 @@ import java.util.stream.Collectors;
  */
 @Service
 public class CardProvider {
+    private static final List<String> SUPER_TYPES = Arrays.asList("Legendary", "Basic");
 
     public List<Card> searchCards(String query) {
         return fetchDom(query)
@@ -108,6 +110,14 @@ public class CardProvider {
             card.setManaCost(mc.text());
             card.setConvertedManaCost(mc.text().replaceAll("[\\{\\}]", "").replaceAll("[wubrg]", "1").chars().reduce(0, (sum, cost) -> sum += Character.getNumericValue(cost)));
             card.setType(type.text());
+            card.setTypes(Arrays.asList(type.text().split(" - ")[0].split(" ")).stream().filter((cardType) -> !SUPER_TYPES.contains(cardType)).collect(Collectors.toList()));
+            if (type.text().contains("-")) {
+                card.setSubTypes(Arrays.asList(type.text().split(" - ")[1].split(" ")));
+            }
+            final String superType = type.text().split(" ")[0];
+            if (SUPER_TYPES.contains(superType)) {
+                card.setSuperTypes(Arrays.asList(superType));
+            }
             card.setOracle(oracle.text().replaceAll(":newline", "\n"));
             card.setFlavor(flavor.text());
             card.setPowerToughness(pt.text());

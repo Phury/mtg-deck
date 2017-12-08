@@ -12,7 +12,10 @@ h1 {
 }
 
 h1, h2, h3, h4, h5, h6, nav .brand-logo {
-  font-family: "Beleren";
+    font-family: "Beleren";
+}
+.oracle h5 {
+    font-family: "Roboto", sans-serif;
 }
 
 .sr-only {
@@ -31,7 +34,13 @@ hr {
     border: 2px solid #9c27b0;
     margin: 5rem auto;
 }
-
+div.collapsible-group {
+    margin: .5rem 0 1rem 0;
+}
+div.collapsible-group ul.collapsible.popout {
+    margin-top: 0;
+    margin-bottom: 0;
+}
 ul.collapsible li div {
     background-color: #fff;
 }
