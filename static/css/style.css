@@ -30,8 +30,8 @@ h1, h2, h3, h4, h5, h6, nav .brand-logo {
 }
 
 hr {
-    width: 50px;
-    border: 2px solid #9c27b0;
+    width: 120px;
+    border: 2px solid #2196f3;
     margin: 5rem auto;
 }
 div.collapsible-group {
@@ -72,7 +72,7 @@ nav.transparent .brand-logo, nav.transparent ul a {
 }
 .splash nav.transparent .brand-logo {
     font-size: 2rem;
-    color: #9c27b0;
+    color: #2196f3;
     font-weight: bold;
 }
 nav .button-collapse {
@@ -138,12 +138,12 @@ sup .mc i {
 nav.nav-extended {
     height: auto;
     background-color: transparent;
-    background-color: rgba(156, 39, 176, 0.3);
+    background-color: rgba(33,150,243, 0.1);
 }
 
 nav.nav-extended.home {
     background-color: transparent;
-    color: #9c27b0;
+    color: #2196f3;
     box-shadow: none;
 }
 nav.nav-extended.home ul a {

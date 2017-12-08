@@ -1,8 +1,8 @@
 {
-  "name": "Counterspell",
-  "short_name": "Counterspell",
-  "theme_color": "#9c27b0",
-  "background_color": "#9c27b0",
+  "name": "Urza's Grimoire",
+  "short_name": "Urza",
+  "theme_color": "#2196f3",
+  "background_color": "#2196f3",
   "display": "standalone",
   "orientation": "portrait",
   "Scope": "/",

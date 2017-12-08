@@ -9,7 +9,9 @@ const {
 
 const Config = {
     host: "",
-    appName: "Counterspell",
+    appName: "Urza's Grimoire",
+    themeColor: "blue",
+    themeColorCode: "#2196f3",
     cardEndpoint: "/api/cards/",
     cardSearchEndpoint: "/api/cards/search?q=",
     deckEndpoint: "/api/decks/",
@@ -26,11 +28,29 @@ const JSON_HEADERS = {
     "Content-Type": "application/json"
 }
 
-const cloneObj = (obj) => {
-    return JSON.parse(JSON.stringify(obj))
+const CacheService = {
+    _caches: [],
+    getCacheNames: function() {
+        return ["decks", "cards"];
+    },
+    getCache: function(name) {
+        if (this.getCacheNames().indexOf(name) == -1) {
+            throw new Error("The given name is an invalid cache name");
+        }
+        if (!this._caches[name]) {
+            this._caches[name] = new PouchDB(name);
+        }
+        return this._caches[name];
+    },
+    destroyCaches: function() {
+        for (const cache in this._caches) {
+            this._caches[cache].destroy();
+            this._caches[cache] = null;
+        }
+    }
 }
 
-const searchHistory = {};
+const searchHistory = {}
 
 //PouchDB.debug.enable('*');
 
@@ -45,7 +65,6 @@ const memoize = function(func, param, cache) {
 }
 
 const DeckResource = {
-    _cache: new PouchDB('decks'),
     _getDeckById: function(deckId) {
         const uri = Config.host + Config.deckEndpoint + deckId;
         return fetch(uri)
@@ -59,7 +78,7 @@ const DeckResource = {
             });
     },
     getDeckById: function(deckId) {
-        return memoize(this._getDeckById, deckId, this._cache);
+        return memoize(this._getDeckById, deckId, CacheService.getCache("decks"));
     },
     listDecks: function() {
         const uri = Config.host + Config.userDeckEndpoint;
@@ -112,7 +131,6 @@ const DeckResource = {
 }
 
 const CardResource = {
-    _cache: new PouchDB('cards'),
     _getCardByName: function(cardName) {
         const uri = Config.host + Config.cardEndpoint + cardName;
         return fetch(uri)
@@ -126,16 +144,14 @@ const CardResource = {
             });
     },
     getCardByName: function(cardName) {
-        return memoize(this._getCardByName, cardName, this._cache);
+        return memoize(this._getCardByName, cardName, CacheService.getCache("cards"));
     },
     getCardsInDeck: function(deck, callback) {
-        console.log({ message: "getCardsInDeck", deck: deck });
-        //const cards = [];
         deck.cards.map((elt, i) => {
             const space = elt.indexOf(" ");
             const numberOfCards = parseInt(elt.substring(0, space)) || 1;
             const cardName = elt.substring(space+1, elt.length);
-            console.log({numberOfCards: numberOfCards, cardName: cardName});
+            //console.log({numberOfCards: numberOfCards, cardName: cardName});
             CardResource.getCardByName(cardName)
                 .then(card => {
                     card.amount = numberOfCards;
@@ -204,6 +220,11 @@ const ExtendedNavigation = React.createClass({
                         }
                         <ul className="side-nav" id="slide-out">
                             <li><a href="https://github.com/Phury/mtg-deck" target="_blank">About</a></li>
+                            <li><a href="#" onClick={(evt) => {
+                                evt.preventDefault();
+                                CacheService.destroyCaches();
+                            }}
+                            >Clear caches</a></li>
                         </ul>
                     </div>
                     <div className="nav-header">
@@ -217,7 +238,7 @@ const ExtendedNavigation = React.createClass({
 
 const Navigation = React.createClass({
     getDefaultProps() {
-        return { navbarColor: "purple" };
+        return { navbarColor: Config.themeColor };
     },
     render: function() {
         return (
@@ -630,30 +651,40 @@ const CardImageComponent = React.createClass({
         return { flipped: false };
     },
     render() {
-        return (
-            <div className="flip-wrapper">
-                <div className={"flip-container "+(this.state.flipped ? "hover" : "")}>
-                    <div className="flipper">
-                        {this.props.card.links &&
+        if (this.props.card.links.hasOwnProperty('flip_image')) {
+            return (
+                <div className="flip-wrapper">
+                    <div className={"flip-container "+(this.state.flipped ? "hover" : "")}>
+                        <div className="flipper">
+                            {this.props.card.links &&
                                 <a href={this.props.card.links.image} data-lightbox="deck-1" data-title={this.props.card.name}>
                                     <img className="front card-thumbnail" src={this.props.card.links.image} />
                                 </a>
-                        }
-                        {this.props.card.links.hasOwnProperty('flip_image') &&
-                                <img className="back card-thumbnail" src={this.props.card.links.flip_image} />
-                        }
+                            }
+                            <img className="back card-thumbnail" src={this.props.card.links.flip_image} />
+                        </div>
                     </div>
+                    {this.props.card.links.hasOwnProperty('flip_image') &&
+                        <a className="btn-floating waves-effect waves-light amber"
+                            onClick={(evt) => {
+                                evt.preventDefault();
+                                this.setState({ flipped: !this.state.flipped })
+                            }.bind(this)}><i className="ms ms-untap"></i>
+                        </a>
+                    }
                 </div>
-                {this.props.card.links.hasOwnProperty('flip_image') &&
-                    <a className="btn-floating waves-effect waves-light amber"
-                        onClick={(evt) => {
-                            evt.preventDefault();
-                            this.setState({ flipped: !this.state.flipped })
-                        }.bind(this)}><i className="ms ms-untap"></i>
-                    </a>
-                }
-            </div>
-        );
+            );
+        } else {
+            return (
+                <div className="img-wrapper">
+                    {this.props.card.links &&
+                       <a href={this.props.card.links.image} data-lightbox="deck-1" data-title={this.props.card.name}>
+                           <img className="card-thumbnail" src={this.props.card.links.image} />
+                       </a>
+                    }
+                </div>
+            );
+        }
     }
 });
 
@@ -768,7 +799,6 @@ const DeckDetailComponent = React.createClass({
         DeckResource.getDeckById(this.props.match.params.deckId)
             .then((deck) => {
                 CardResource.getCardsInDeck(deck, (cards) => {
-                    //console.log(cards);
                     const allCards = this.state.cards.concat(cards);
                     this.setState({
                         deck: deck,
@@ -815,7 +845,7 @@ const DeckDetailComponent = React.createClass({
                         }]} />
                 </div>
                 <main>
-                    <nav className="pushpin-target purple">
+                    <nav className={"pushpin-target "+Config.themeColor}>
                         <div className="nav-wrapper">
                             <ul className="">
                                 <li>{'\u00A0'}Order by:{'\u00A0'}{'\u00A0'}</li>
@@ -960,7 +990,7 @@ const HomeComponent = React.createClass({
     },
     componentDidMount: function() {
         DeckResource.listDecks().then((decks) => {
-            console.log(decks);
+            //console.log(decks);
             this.setState({decks: decks});
         });
     },
